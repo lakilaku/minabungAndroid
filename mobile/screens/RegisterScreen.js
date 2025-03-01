@@ -1,15 +1,15 @@
 import { gql, useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 
 
 const REGISTER = gql`
-    mutation Register($name: String!, $username: String!, $email: String!, $password: String!) {
-        register(name: $name, username: $username, email: $email, password: $password) {
+    mutation Register($name: String!, $username: String!, $email: String!, $password: String!, $gender: String!) {
+        Register(name: $name, username: $username, email: $email, password: $password, gender: $gender) {
             name
-            _id
             email
+            gender
         }
     }
 `
@@ -18,6 +18,7 @@ export default function RegisterScreen() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [gender, setGender] = useState('');
     const navigation = useNavigation(); 
 
     const [register, { loading, error }] = useMutation(REGISTER, {
@@ -30,15 +31,24 @@ export default function RegisterScreen() {
     });
 
     const handleRegister = async () => {
-        if (!name || !username || !email || !password) {
+        if (!name || !username || !email || !password || !gender) {
             Alert.alert('Validation Error', 'Please fill all fields');
             return;
         }
         
         try {
-            await register({ variables: { name, username, email, password } });
+            await register({ variables: { name, username, email, password, gender } });
+            Alert.alert(
+                "Register Berhasil", 
+                "Silahkan Login!", 
+                [
+                    { text: "OK", onPress: () => navigation.navigate('Login') },
+                ],
+                { cancelable: false }
+            );
         } catch (err) {
             console.error(err);
+            Alert.alert('Error!', error.message);
         }
     };
     return (
@@ -73,6 +83,13 @@ export default function RegisterScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="Gender"
+            value={gender}
+            onChangeText={setGender}
         />
 
         <Button 
