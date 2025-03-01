@@ -1,11 +1,13 @@
-import React, { useRef, useMemo } from "react";
-import { Text, View, StyleSheet, FlatList } from "react-native";
+import React, { useRef, useMemo, useState } from "react";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { BarChart, PieChart } from "react-native-gifted-charts";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const BudgetScreen = () => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
+  const [selectedTab, setSelectedTab] = useState("Expense");
   const barData = [
     {
       value: 40,
@@ -167,21 +169,81 @@ const BudgetScreen = () => {
       </View>
       <BottomSheet ref={bottomSheetRef} index={0} snapPoints={snapPoints}>
         <View style={styles.bottomSheetContent}>
-          <Text style={styles.sheetTitle}>Budget Details</Text>
+          {/* TAB SELECTOR */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                selectedTab === "Expense" && styles.selectedTab,
+              ]}
+              onPress={() => setSelectedTab("Expense")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === "Expense" && styles.selectedTabText,
+                ]}
+              >
+                Expense
+              </Text>
+              <Icon
+                name="trending-up"
+                size={16}
+                color={selectedTab === "Expense" ? "red" : "black"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                selectedTab === "Income" && styles.selectedTab,
+              ]}
+              onPress={() => setSelectedTab("Income")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === "Income" && styles.selectedTabText,
+                ]}
+              >
+                Income
+              </Text>
+              <Icon
+                name="trending-down"
+                size={16}
+                color={selectedTab === "Income" ? "green" : "black"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* LIST OF TRANSACTIONS */}
           <BottomSheetFlatList
-            data={[
-              { key: "Total Income: $5000" },
-              { key: "Total Expenses: $3500" },
-              { key: "Remaining: $1500" },
-              { key: "Food: $500" },
-              { key: "Rent: $1200" },
-              { key: "Transport: $300" },
-              { key: "Shopping: $200" },
-              { key: "Savings: $1000" },
-            ]}
+            data={
+              selectedTab === "Expense"
+                ? [
+                    { key: "Food: $500" },
+                    { key: "Rent: $1200" },
+                    { key: "Transport: $300" },
+                    { key: "Shopping: $200" },
+                  ]
+                : [
+                    { key: "Salary: $5000" },
+                    { key: "Freelance: $1500" },
+                    { key: "Investments: $200" },
+                  ]
+            }
             keyExtractor={(item) => item.key}
             renderItem={({ item }) => (
-              <Text style={styles.sheetItem}>{item.key}</Text>
+              <View style={styles.listItem}>
+                <Icon
+                  name={
+                    selectedTab === "Expense" ? "remove-circle" : "add-circle"
+                  }
+                  size={18}
+                  color={selectedTab === "Expense" ? "red" : "green"}
+                />
+                <Text style={styles.sheetItem}>{item.key}</Text>
+              </View>
             )}
           />
         </View>
@@ -216,6 +278,46 @@ const styles = StyleSheet.create({
   sheetItem: {
     fontSize: 16,
     paddingVertical: 8,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
+    backgroundColor: "#F9D976",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  tab: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    borderRadius: 10,
+  },
+  selectedTab: {
+    backgroundColor: "white",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 5,
+    color: "black",
+  },
+  selectedTabText: {
+    color: "black",
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    padding: 10,
+    backgroundColor: "white",
+    borderRadius: 10,
+    marginVertical: 5,
+  },
+  sheetItem: {
+    fontSize: 16,
+    paddingVertical: 8,
+    marginLeft: 10,
   },
 });
 
