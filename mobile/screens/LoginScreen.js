@@ -7,35 +7,53 @@ import { saveSecure } from '../utils/SecureStore';
 import Modal from 'react-native-modal';
 
 const LOGIN = gql`
-    mutation Login($username: String!, $password: String!) {
-        login(username: $username, password: $password) {
-            accessToken
+    mutation Login($email: String!, $password: String!) {
+        Login(email: $email, password: $password) {
+            access_token
+            user {
+                email
+                name
+                username
+            }
         }
     }
 `
 
 export default function LoginScreen() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { setIsSignedIn } = useContext(AuthContext);
     const [loginAccess, { loading }] = useMutation(LOGIN);
-
+    
     const navigation = useNavigation();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const handleSubmitLogin = async () => {
         try {
+            // console.log(email, password);
+            
             const result = await loginAccess({
                 variables: {
-                    username,
+                    email,
                     password,
                 }
             });
-            const accessToken = result.data.login.accessToken;
+            // console.log(result);
+            
+            // const accessToken = result.data.login.accessToken;
+            const accessToken = result.data.Login.access_token;
             await saveSecure('accessToken', accessToken);
             setIsSignedIn(true);
             setIsModalVisible(false); 
+            Alert.alert(
+                "Login Berhasil", 
+                "Selamat datang kembali!", 
+                [
+                    { text: "OK", onPress: () => navigation.navigate('Home') },
+                ],
+                { cancelable: false }
+            );
         } catch (error) {
             console.log(error.message);
             Alert.alert('Error!', error.message);
@@ -74,9 +92,9 @@ export default function LoginScreen() {
                     <Text style={styles.modalTitle}>Minabung</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Username"
-                        onChangeText={setUsername}
-                        value={username}
+                        placeholder="Email"
+                        onChangeText={setEmail}
+                        value={email}
                     />
                     <TextInput
                         style={styles.input}
