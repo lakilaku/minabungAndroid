@@ -75,18 +75,18 @@ export default function RootStack() {
               }}
             />
             <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{
-                title: "Profile",
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
               name="Add"
               component={AddIncomeExpenseScreen}
               options={{
                 title: "Add Income/Expense",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{
+                title: "Profile",
                 headerShown: false,
               }}
             />

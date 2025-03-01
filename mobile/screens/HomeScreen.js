@@ -1,28 +1,10 @@
-import React, { useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { deleteSecure } from "../utils/SecureStore";
-import { AuthContext } from "../contexts/AuthContext";
+import { View, Text, StyleSheet } from "react-native";
 
 const HomeScreen = () => {
-  const { setIsSignedIn } = useContext(AuthContext);
   return (
     <View style={styles.topContainer}>
       <Text style={styles.subTitle}>Balance</Text>
       <Text style={styles.title}>Rp.10.000.000</Text>
-      <TouchableOpacity
-        style={{
-          borderRadius: 20,
-          backgroundColor: "#f52d56",
-          paddingHorizontal: 15,
-          paddingVertical: 5,
-        }}
-        onPress={async () => {
-          await deleteSecure("accessToken");
-          setIsSignedIn(false);
-        }}
-      >
-        <Text style={{ color: "white" }}>Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 };
