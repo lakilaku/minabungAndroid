@@ -4,6 +4,33 @@ import BottomSheetComponent from "../components/bottomsheet";
 import BarChartComponent from "../components/barchart";
 import PieChartComponent from "../components/piechart";
 
+// const GET_ALL_TRANSACTIONS = gql``
+
+// const GET_THIS_MONTH_EXPENSES = gql`
+//   query GetThisMonthExpenses($groupId: ID!) {
+//     getThisMonthExpenses(groupId: $groupId) {
+//       _id
+//       name
+//       note
+//       amount
+//       date
+//       budgetId
+//     }
+//   }
+// `;
+
+// const GET_THIS_MONTH_INCOMES = gql`
+//   query GetThisMonthIncomes($groupId: ID!) {
+//     getThisMonthIncomes(groupId: $groupId) {
+//       _id
+//       name
+//       note
+//       amount
+//       date
+//     }
+//   }
+// `;
+
 const BudgetScreen = () => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
@@ -15,11 +42,11 @@ const BudgetScreen = () => {
         <Text style={styles.subTitle}>This month</Text>
       </View>
 
-      {/* Bar Chart */}
-      <BarChartComponent />
-
       {/* Pie Chart */}
       <PieChartComponent />
+
+      {/* Bar Chart */}
+      <BarChartComponent />
 
       {/* Bottom Sheet */}
       <BottomSheetComponent

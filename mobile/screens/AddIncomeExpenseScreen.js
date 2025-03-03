@@ -12,6 +12,59 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation, useQuery } from "@apollo/client";
 
+const dummyData = {
+  getGroupById: {
+    budgets: [
+      { _id: "1", name: "Food", icon: "restaurant", color: "#FF5733" },
+      { _id: "2", name: "Transport", icon: "directions-bus", color: "#3498DB" },
+      { _id: "3", name: "Shopping", icon: "shopping-cart", color: "#F1C40F" },
+      { _id: "4", name: "Health", icon: "local-hospital", color: "#2ECC71" },
+      { _id: "5", name: "Entertainment", icon: "movie", color: "#9B59B6" },
+      { _id: "6", name: "Education", icon: "school", color: "#E67E22" },
+      { _id: "7", name: "Bills", icon: "receipt", color: "#1ABC9C" },
+      { _id: "8", name: "Savings", icon: "savings", color: "#E74C3C" },
+    ],
+  },
+};
+
+const GET_GROUP_BY_ID = gql`
+  query Query($getGroupByIdId: ID!) {
+    getGroupById(id: $getGroupByIdId) {
+      _id
+      name
+      description
+      members {
+        _id
+        name
+        role
+      }
+      incomes {
+        _id
+        name
+        note
+        amount
+        date
+      }
+      expenses {
+        _id
+        name
+        note
+        amount
+        date
+        budgetId
+      }
+      budgets {
+        _id
+        name
+        limit
+        icon
+        color
+      }
+      invite
+    }
+  }
+`;
+
 const GET_CATEGORIES = gql`
   query Query($getGroupByIdId: ID!) {
     getGroupById(id: $getGroupByIdId) {
@@ -31,12 +84,20 @@ const CREATE_POST_EXPENSE = gql`
     $amount: Float!
     $groupId: ID!
     $note: String
+    $budgetId: ID
   ) {
-    addExpense(name: $name, amount: $amount, groupId: $groupId, note: $note) {
+    addExpense(
+      name: $name
+      amount: $amount
+      groupId: $groupId
+      note: $note
+      budgetId: $budgetId
+    ) {
       name
       amount
       note
       date
+      budgetId
     }
   }
 `;
@@ -67,6 +128,7 @@ const ExpenseIncomeScreen = () => {
 
   const { data, loading, error } = useQuery(GET_CATEGORIES, {
     variables: { getGroupByIdId: groupId },
+    skip: true,
   });
   const [addExpense] = useMutation(CREATE_POST_EXPENSE, {
     onCompleted: () => Alert.alert("Success", "Expense added successfully"),
@@ -85,10 +147,11 @@ const ExpenseIncomeScreen = () => {
 
     try {
       const variables = {
-        name: selectedCategory.name,
+        name,
         amount: parseFloat(amount),
         groupId,
         note: note || "",
+        budgetId: selectedCategory?._id,
       };
 
       if (selectedType === "Expense") {
@@ -109,7 +172,8 @@ const ExpenseIncomeScreen = () => {
     return <Text>Error loading categories...</Text>;
   }
 
-  const categories = data?.getGroupById?.budgets || [];
+  const categories =
+    data?.getGroupById?.budgets || dummyData.getGroupById.budgets;
 
   return (
     <View style={styles.container}>
@@ -166,24 +230,26 @@ const ExpenseIncomeScreen = () => {
       </View>
 
       {/* Grid of Categories */}
-      <FlatList
-        data={categories}
-        keyExtractor={(item) => item._id}
-        numColumns={4}
-        columnWrapperStyle={styles.categoryRow}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryItem,
-              selectedCategory?._id === item._id && styles.selectedCategory,
-            ]}
-            onPress={() => setSelectedCategory(item)}
-          >
-            <Icon name={item.icon} size={24} color={item.color || "black"} />
-            <Text style={styles.categoryText}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {selectedType === "Expense" && (
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item._id}
+          numColumns={4}
+          columnWrapperStyle={styles.categoryRow}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.categoryItem,
+                selectedCategory?._id === item._id && styles.selectedCategory,
+              ]}
+              onPress={() => setSelectedCategory(item)}
+            >
+              <Icon name={item.icon} size={24} color={item.color || "black"} />
+              <Text style={styles.categoryText}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
 
       {/* Input Fields */}
       <View style={styles.inputContainer}>
@@ -193,6 +259,13 @@ const ExpenseIncomeScreen = () => {
           keyboardType="numeric"
           value={amount}
           onChangeText={setAmount}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Description"
+          multiline
+          value={note}
+          onChangeText={setNote}
         />
         <TextInput
           style={styles.input}

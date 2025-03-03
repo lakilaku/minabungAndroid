@@ -2,6 +2,18 @@ import React from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
+//weekly in a month
+// //query Query($groupId: ID!) {
+//   getThisMonthIncomesandExpenses(groupId: $groupId) {
+//     _id
+//     name
+//     note
+//     amount
+//     date
+//     budgetId
+//     type
+//   }
+// }
 const barData = [
   { value: 2000000, label: "Jan", frontColor: "#177AD5" },
   { value: 1000000, frontColor: "#ED6665" },
@@ -11,10 +23,6 @@ const barData = [
   { value: 25, frontColor: "#ED6665" },
   { value: 30, label: "Apr", frontColor: "#177AD5" },
   { value: 20, frontColor: "#ED6665" },
-  { value: 60, label: "May", frontColor: "#177AD5" },
-  { value: 40, frontColor: "#ED6665" },
-  { value: 65, label: "Jun", frontColor: "#177AD5" },
-  { value: 30, frontColor: "#ED6665" },
 ];
 
 const BarChartComponent = () => {
