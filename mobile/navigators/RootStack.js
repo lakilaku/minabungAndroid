@@ -114,23 +114,21 @@ export default function RootStack() {
             <Stack.Screen
               name="Login"
               component={LoginScreen}
-              options={{ title: "Login" }}
+              options={{ title: "Login", headerShown: false }}
             />
             <Stack.Screen
               name="Register"
               component={RegisterScreen}
-              options={{ title: "Register" }}
+              options={{ title: "Register", headerShown: false }}
             />
           </>
         )}
       </Stack.Navigator>
-      {
-        isSignedIn 
-        && 
+      {isSignedIn && (
         <View style={{ backgroundColor: "#f5c400", paddingBottom: 30 }}>
           <MenuBar navigation={navigation} />
         </View>
-      }
+      )}
     </>
   );
 }
