@@ -14,6 +14,7 @@ const LOGIN = gql`
                 email
                 name
                 username
+                _id
             }
         }
     }
@@ -39,11 +40,14 @@ export default function LoginScreen() {
                     password,
                 }
             });
-            // console.log(result);
+            console.log(result);
             
             // const accessToken = result.data.login.accessToken;
-            const accessToken = result.data.Login.access_token;
-            await saveSecure('accessToken', accessToken);
+            const { access_token, user } = result.data.Login;
+
+            // Simpan token & user info ke SecureStore
+            await saveSecure('accessToken', access_token);
+            await saveSecure('userData', JSON.stringify(user));
             setIsSignedIn(true);
             setIsModalVisible(false); 
             Alert.alert(
