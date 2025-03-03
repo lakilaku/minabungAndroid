@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import TransactionList from '../components/TransactionList';
 import BudgetList from '../components/BudgetList';
 import { getSecure } from '../utils/SecureStore';
@@ -70,11 +69,12 @@ const HomeScreen = () => {
   const groupData = data?.getGroupByUserId[0] || {};  
   const budgets = groupData.budgets || [];
   const incomes = groupData.incomes || [];
+  const groupList = data?.getGroupByUserId || [];
 
   const totalIncome = incomes.reduce((acc, income) => acc + (income.amount || 0), 0);
 
   return (
-    data.getGroupByUserId.length > 0 ? (
+    groupList.length > 0 ? (
       <View style={styles.container}>
         <View style={styles.incomeContainer}>
           <Text style={styles.incomeTitle}>Income</Text>
@@ -94,8 +94,8 @@ const HomeScreen = () => {
 
         <TransactionList groupId={groupData._id} />
       </View>
-    ) : (
-      <AddGroup navigation={navigation} />
+    ):(
+      <AddGroup navigation={navigation}/>
     )
   );
 };
