@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { FormatRupiah } from '../utils/NumberFormat';
@@ -15,14 +15,41 @@ const GET_THIS_MONTH_INCOME_EXPENSES = gql`
     }
 `;
 
-
 const TransactionList = ({ groupId }) => {
-    const [generatedTexts, setGeneratedTexts] = useState([]);
-
     const { data, loading, error } = useQuery(GET_THIS_MONTH_INCOME_EXPENSES, {
         variables: { groupId },
         skip: !groupId,
     });
+
+    const allTransaction = useMemo(() => data?.getThisMonthIncomesandExpenses || [], [data]);
+
+    const [generatedTexts, setGeneratedTexts] = useState([]);
+
+    useEffect(() => {
+        const fetchGeneratedTexts = async () => {
+            if (allTransaction.length === 0) {
+                setGeneratedTexts([]);
+                return;
+            }
+
+            const newGeneratedTexts = await Promise.all(
+                allTransaction.map(async (item) => {
+                    try {
+                        const response = await fetch(`https://text.pollinations.ai/berikan 1 icon yang ada pada MaterialIcons https://oblador.github.io/react-native-vector-icons ${item.name} berikan 1 name tanpa ada penjelasan dan tanda " atau '`);
+                        const result = await response.text();
+                        return result;
+                    } catch (error) {
+                        console.error("Error fetching icon:", error);
+                        return 'error-outline';
+                    }
+                })
+            );
+
+            setGeneratedTexts(newGeneratedTexts);
+        };
+
+        fetchGeneratedTexts();
+    }, [allTransaction]);
 
     if (loading) {
         return <Text>Loading...</Text>;
@@ -32,31 +59,6 @@ const TransactionList = ({ groupId }) => {
         return <Text>Error: {error.message}</Text>;
     }
 
-    const allTransaction = data?.getThisMonthIncomesandExpenses || [];
-    
-    //   console.log(allTransaction);
-
-    useEffect(() => {
-        const fetchGeneratedTexts = async () => {
-            const newGeneratedTexts = await Promise.all(
-                allTransaction.map(async (item) => {
-                    try {
-                        const response = await fetch(`https://text.pollinations.ai/berikan 1 icon yang ada pada MaterialIcons https://oblador.github.io/react-native-vector-icons ${item.name} berikan 1 name tanpa ada penjelasan dan tanda " atau '`);
-                        const result = await response.text();
-                        // console.log(result);
-                        return result;
-                    } catch (error) {
-                        console.error("Error fetching icon:", error);
-                        return 'error-outline'; // Default icon jika gagal
-                    }
-                })
-            );
-            setGeneratedTexts(newGeneratedTexts);
-        };
-
-        fetchGeneratedTexts();
-    }, [allTransaction]); // `useEffect` hanya dijalankan ketika `transactions` berubah
-
     return (
         <View style={styles.container}>
             <ScrollView style={styles.expenseContainer}>
@@ -65,8 +67,8 @@ const TransactionList = ({ groupId }) => {
                     <Text style={styles.noDataText}>No transactions available</Text>
                 ) : (
                     allTransaction.map((item, idx) => (
-                        <View key={item._id || idx.toString()} style={styles.expenseItem}>
-                            <Icon name={generatedTexts[idx]} size={24} color="#333" style={styles.expenseIcon} />
+                        <View key={idx} style={styles.expenseItem}>
+                            <Icon name={generatedTexts[idx] || "help-outline"} size={24} color="#333" style={styles.expenseIcon} />
                             <Text style={styles.expenseItemName}>{item.name}</Text>
                             <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
                             <Icon
