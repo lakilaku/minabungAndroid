@@ -1,139 +1,277 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { View, Text, ScrollView, StyleSheet, Modal, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { FormatRupiah } from '../utils/NumberFormat';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
+import { useState } from 'react';
 
 const GET_THIS_MONTH_INCOME_EXPENSES = gql`
-    query GetThisMonthIncomesandExpenses($groupId: ID!) {
-        getThisMonthIncomesandExpenses(groupId: $groupId) {
-            name
-            amount
-            date
-            type
-        }
+  query GetThisMonthIncomesandExpenses($groupId: ID!) {
+    getThisMonthIncomesandExpenses(groupId: $groupId) {
+        _id
+        name
+        amount
+        date
+        type
     }
+  }
+`;
+
+const UPDATE_INCOME = gql`
+  mutation UpdateIncome($updateIncomeId: ID!, $groupId: ID!, $amount: Float, $name: String) {
+    updateIncome(id: $updateIncomeId, groupId: $groupId, amount: $amount, name: $name) {
+      name
+      amount
+    }
+  }
+`;
+
+const DELETE_INCOME = gql`
+  mutation DeleteIncome($deleteIncomeId: ID!, $groupId: ID!) {
+    deleteIncome(id: $deleteIncomeId, groupId: $groupId)
+  }
+`;
+
+const UPDATE_EXPENSE = gql`
+  mutation UpdateExpense($updateExpenseId: ID!, $name: String, $amount: Float, $budgetId: ID) {
+    updateExpense(id: $updateExpenseId, name: $name, amount: $amount, budgetId: $budgetId) {
+      name
+      amount
+    }
+  }
+`;
+
+const DELETE_EXPENSE = gql`
+  mutation DeleteExpense($deleteExpenseId: ID!) {
+    deleteExpense(id: $deleteExpenseId) {
+      name
+      amount
+    }
+  }
 `;
 
 const TransactionList = ({ groupId }) => {
-    const { data, loading, error } = useQuery(GET_THIS_MONTH_INCOME_EXPENSES, {
-        variables: { groupId },
-        skip: !groupId,
-    });
+  const { data, loading, error, refetch } = useQuery(GET_THIS_MONTH_INCOME_EXPENSES, {
+    variables: { groupId },
+    skip: !groupId,
+  });
 
-    const allTransaction = useMemo(() => data?.getThisMonthIncomesandExpenses || [], [data]);
+  const [updateIncome] = useMutation(UPDATE_INCOME, { onCompleted: () => refetch() });
+  const [deleteIncome] = useMutation(DELETE_INCOME, { onCompleted: () => refetch() });
+  const [updateExpense] = useMutation(UPDATE_EXPENSE, { onCompleted: () => refetch() });
+  const [deleteExpense] = useMutation(DELETE_EXPENSE, { onCompleted: () => refetch() });
 
-    const [generatedTexts, setGeneratedTexts] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState('');
 
-    useEffect(() => {
-        const fetchGeneratedTexts = async () => {
-            if (allTransaction.length === 0) {
-                setGeneratedTexts([]);
-                return;
-            }
+  if (loading) return <Text>Loading...</Text>;
+  if (error) return <Text>Error: {error.message}</Text>;
 
-            const newGeneratedTexts = await Promise.all(
-                allTransaction.map(async (item) => {
-                    try {
-                        const response = await fetch(`https://text.pollinations.ai/berikan 1 icon yang ada pada MaterialIcons https://oblador.github.io/react-native-vector-icons ${item.name} berikan 1 name tanpa ada penjelasan dan tanda " atau '`);
-                        const result = await response.text();
-                        return result;
-                    } catch (error) {
-                        console.error("Error fetching icon:", error);
-                        return 'error-outline';
-                    }
-                })
-            );
+  const allTransaction = data?.getThisMonthIncomesandExpenses || [];
 
-            setGeneratedTexts(newGeneratedTexts);
-        };
+  const openModal = (transaction) => {
+    setSelectedTransaction(transaction);
+    setName(transaction.name);
+    setAmount(transaction.amount.toString());
+    setModalVisible(true);
+  };
 
-        fetchGeneratedTexts();
-    }, [allTransaction]);
+  const handleUpdate = async () => {
+    if (!selectedTransaction) return;
 
-    if (loading) {
-        return <Text>Loading...</Text>;
+    try {
+      if (selectedTransaction.type === "income") {
+        await updateIncome({
+          variables: {
+            updateIncomeId: selectedTransaction._id,
+            groupId,
+            name,
+            amount: parseFloat(amount),
+          },
+        });
+      } else {
+        await updateExpense({
+          variables: {
+            updateExpenseId: selectedTransaction._id,
+            name,
+            amount: parseFloat(amount),
+            budgetId: groupId,
+          },
+        });
+      }
+
+      Alert.alert("Success", "Transaction updated successfully.");
+      setModalVisible(false);
+    } catch (error) {
+      Alert.alert("Error", "Failed to update transaction.");
     }
+  };
 
-    if (error) {
-        return <Text>Error: {error.message}</Text>;
+  const handleDelete = async () => {
+    if (!selectedTransaction) return;
+
+    try {
+      if (selectedTransaction.type === "income") {
+        await deleteIncome({
+          variables: { deleteIncomeId: selectedTransaction._id, groupId },
+        });
+      } else {
+        await deleteExpense({
+          variables: { deleteExpenseId: selectedTransaction._id },
+        });
+      }
+
+      Alert.alert("Success", "Transaction deleted successfully.");
+      setModalVisible(false);
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete transaction.");
     }
+  };
 
-    return (
-        <View style={styles.container}>
-            <ScrollView style={styles.expenseContainer}>
-                <Text style={styles.expenseTitle}>All Transactions</Text>
-                {allTransaction.length === 0 ? (
-                    <Text style={styles.noDataText}>No transactions available</Text>
-                ) : (
-                    allTransaction.map((item, idx) => (
-                        <View key={idx} style={styles.expenseItem}>
-                            <Icon name={generatedTexts[idx] || "help-outline"} size={24} color="#333" style={styles.expenseIcon} />
-                            <Text style={styles.expenseItemName}>{item.name}</Text>
-                            <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
-                            <Icon
-                                name={item.type === 'income' ? 'arrow-downward' : 'arrow-upward'}
-                                size={20}
-                                color={item.type === 'income' ? 'green' : 'red'}
-                                style={styles.arrowIcon}
-                            />
-                        </View>
-                    ))
-                )}
-            </ScrollView>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.expenseContainer}>
+        <Text style={styles.expenseTitle}>All Transactions</Text>
+        {allTransaction.length === 0 ? (
+          <Text style={styles.noDataText}>No transactions available</Text>
+        ) : (
+          allTransaction.map((item) => (
+            <TouchableOpacity key={item._id} onPress={() => openModal(item)}>
+              <View style={styles.expenseItem}>
+                <Text style={styles.expenseItemName}>{item.name}</Text>
+                <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
+                <Icon
+                  name={item.type === 'income' ? 'arrow-downward' : 'arrow-upward'}
+                  size={20}
+                  color={item.type === 'income' ? 'green' : 'red'}
+                  style={styles.arrowIcon}
+                />
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+      
+        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+            <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                <Text>Edit Transaction</Text>
+                <TextInput style={styles.input} value={name} onChangeText={setName} />
+                <TextInput style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+                
+                {/* Button Container */}
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity style={[styles.button, styles.updateButton]} onPress={handleUpdate}>
+                    <Text style={styles.buttonText}>Update</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
+                    <Text style={styles.buttonText}>Delete</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={() => setModalVisible(false)}>
+                    <Text style={styles.buttonText}>Close</Text>
+                    </TouchableOpacity>
+                </View>
+                </View>
+            </View>
+        </Modal>
+
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5c400',
-        paddingHorizontal: 10,
-    },
-    expenseContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        padding: 16,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        flex: 1,
-    },
-    expenseTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginLeft: 16,
-        marginBottom: 10,
-        color: '#000',
-    },
-    expenseItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    expenseIcon: {
-        marginRight: 10,
-    },
-    expenseItemName: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-    },
-    expenseItemAmount: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#000',
-    },
-    arrowIcon: {
-        marginLeft: 10,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5c400',
+    paddingHorizontal: 10,
+  },
+  expenseContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    flex: 1,
+  },
+  expenseTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 16,
+    marginBottom: 10,
+    color: '#000',
+  },
+  expenseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  expenseItemName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  expenseItemAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  arrowIcon: {
+    marginLeft: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',  // Susun horizontal
+    justifyContent: 'space-between', // Rata ke samping
+    width: '100%', // Penuhi lebar modal
+    marginTop: 10,
+  },
+  button: {
+    flex: 1, // Agar tombol sama besar
+    padding: 10,
+    alignItems: 'center',
+    borderRadius: 5,
+    marginHorizontal: 5, // Beri sedikit jarak antar tombol
+  },
+  updateButton: {
+    backgroundColor: '#102a71',
+  },
+  deleteButton: {
+    backgroundColor: '#9109',
+  },
+  closeButton: {
+    backgroundColor: '#ccc',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
 
 export default TransactionList;

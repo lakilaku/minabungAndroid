@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import TransactionList from '../components/TransactionList';
 import BudgetList from '../components/BudgetList';
 import { getSecure } from '../utils/SecureStore';
@@ -20,6 +20,7 @@ const GET_GROUP_BY_USER_ID = gql`
         name
         limit
         color
+        icon
       }
       members {
         name
@@ -53,7 +54,7 @@ const HomeScreen = () => {
     fetchUserData();
   }, []);
 
-  const { data, loading, error } = useQuery(GET_GROUP_BY_USER_ID, {
+  const { data, loading, error, refetch } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
     skip: !userId,
   });
@@ -85,12 +86,15 @@ const HomeScreen = () => {
 
         <BudgetList targetData={budgets} />
 
-        <AddTransactionButtons/>
+        <AddTransactionButtons navigation={navigation} groupId={groupData._id} refetch={refetch}/>
 
-        <View style={styles.groupContainer}>
+        <TouchableOpacity 
+          style={styles.groupContainer}
+          onPress={() => navigation.navigate("AddGroup")}
+        >
           <Text style={styles.groupTitle}>Group</Text>
           <Text style={styles.groupName}>{groupData.name}</Text>
-        </View>
+        </TouchableOpacity>
 
         <TransactionList groupId={groupData._id} />
       </View>
