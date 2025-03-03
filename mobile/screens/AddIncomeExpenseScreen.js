@@ -6,36 +6,110 @@ import {
   TextInput,
   StyleSheet,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
-const expenseCategories = [
-  { id: 1, name: "Food", icon: "fastfood" },
-  { id: 2, name: "Transport", icon: "directions-bus" },
-  { id: 3, name: "Shopping", icon: "shopping-bag" },
-  { id: 4, name: "Entertainment", icon: "movie" },
-  { id: 5, name: "Rent", icon: "home" },
-  { id: 6, name: "Health", icon: "healing" },
-  { id: 7, name: "Education", icon: "school" },
-  { id: 8, name: "Other", icon: "more-horiz" },
-];
+const GET_CATEGORIES = gql`
+  query Query($getGroupByIdId: ID!) {
+    getGroupById(id: $getGroupByIdId) {
+      budgets {
+        _id
+        name
+        icon
+        color
+      }
+    }
+  }
+`;
 
-const incomeCategories = [
-  { id: 1, name: "Salary", icon: "attach-money" },
-  { id: 2, name: "Freelance", icon: "work" },
-  { id: 3, name: "Investments", icon: "trending-up" },
-  { id: 4, name: "Business", icon: "storefront" },
-  { id: 5, name: "Gifts", icon: "card-giftcard" },
-  { id: 6, name: "Rental Income", icon: "real-estate-agent" },
-  { id: 7, name: "Other", icon: "more-horiz" },
-];
+const CREATE_POST_EXPENSE = gql`
+  mutation AddExpense(
+    $name: String!
+    $amount: Float!
+    $groupId: ID!
+    $note: String
+  ) {
+    addExpense(name: $name, amount: $amount, groupId: $groupId, note: $note) {
+      name
+      amount
+      note
+      date
+    }
+  }
+`;
+
+const CREATE_POST_INCOME = gql`
+  mutation AddIncome(
+    $amount: Float!
+    $note: String
+    $name: String!
+    $groupId: ID!
+  ) {
+    addIncome(amount: $amount, note: $note, name: $name, groupId: $groupId) {
+      _id
+      name
+      note
+      amount
+      date
+    }
+  }
+`;
 
 const ExpenseIncomeScreen = () => {
   const [selectedType, setSelectedType] = useState("Expense");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const groupId = "yourGroupId";
 
-  const categories =
-    selectedType === "Expense" ? expenseCategories : incomeCategories;
+  const { data, loading, error } = useQuery(GET_CATEGORIES, {
+    variables: { getGroupByIdId: groupId },
+  });
+  const [addExpense] = useMutation(CREATE_POST_EXPENSE, {
+    onCompleted: () => Alert.alert("Success", "Expense added successfully"),
+    onError: (err) => Alert.alert("Error", err.message),
+  });
+  const [addIncome] = useMutation(CREATE_POST_INCOME, {
+    onCompleted: () => Alert.alert("Success", "Income added successfully"),
+    onError: (err) => Alert.alert("Error", err.message),
+  });
+
+  const handleAddTransaction = async () => {
+    if (!selectedCategory || !amount) {
+      Alert.alert("Error", "Please select a category and enter an amount");
+      return;
+    }
+
+    try {
+      const variables = {
+        name: selectedCategory.name,
+        amount: parseFloat(amount),
+        groupId,
+        note: note || "",
+      };
+
+      if (selectedType === "Expense") {
+        await addExpense({ variables });
+      } else {
+        await addIncome({ variables });
+      }
+    } catch (err) {
+      console.error("Transaction error:", err);
+    }
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (error) {
+    return <Text>Error loading categories...</Text>;
+  }
+
+  const categories = data?.getGroupById?.budgets || [];
 
   return (
     <View style={styles.container}>
@@ -60,7 +134,7 @@ const ExpenseIncomeScreen = () => {
             Expense
           </Text>
           <Icon
-            name="trending-up"
+            name="trending-down"
             size={16}
             color={selectedType === "Expense" ? "red" : "black"}
           />
@@ -84,7 +158,7 @@ const ExpenseIncomeScreen = () => {
             Income
           </Text>
           <Icon
-            name="trending-down"
+            name="trending-up"
             size={16}
             color={selectedType === "Income" ? "green" : "black"}
           />
@@ -94,36 +168,47 @@ const ExpenseIncomeScreen = () => {
       {/* Grid of Categories */}
       <FlatList
         data={categories}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id}
         numColumns={4}
         columnWrapperStyle={styles.categoryRow}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[
               styles.categoryItem,
-              selectedCategory === item.id && styles.selectedCategory,
+              selectedCategory?._id === item._id && styles.selectedCategory,
             ]}
-            onPress={() => setSelectedCategory(item.id)}
+            onPress={() => setSelectedCategory(item)}
           >
-            <Icon name={item.icon} size={24} color="black" />
+            <Icon name={item.icon} size={24} color={item.color || "black"} />
             <Text style={styles.categoryText}>{item.name}</Text>
           </TouchableOpacity>
         )}
       />
 
       {/* Input Fields */}
-      <TextInput
-        style={styles.input}
-        placeholder="Amount"
-        keyboardType="numeric"
-      />
-      <TextInput style={styles.input} placeholder="Name" />
-      <TextInput style={styles.input} placeholder="Description" multiline />
-
-      {/* Add Button */}
-      <TouchableOpacity style={styles.addButton}>
-        <Text style={styles.addButtonText}>Add</Text>
-      </TouchableOpacity>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Amount"
+          keyboardType="numeric"
+          value={amount}
+          onChangeText={setAmount}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Description"
+          multiline
+          value={note}
+          onChangeText={setNote}
+        />
+        {/* Add Button */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddTransaction}
+        >
+          <Text style={styles.addButtonText}>Add</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -198,6 +283,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
+  },
+  inputContainer: {
+    flex: 1,
   },
   addButton: {
     backgroundColor: "#3B82F6",

@@ -9,7 +9,7 @@ const BudgetScreen = () => {
   const snapPoints = useMemo(() => ["10%", "70%"], []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#F9D976" }}>
       <View style={styles.topContainer}>
         <Text style={styles.title}>Aqbils Family</Text>
         <Text style={styles.subTitle}>This month</Text>
@@ -39,11 +39,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   subTitle: {
     fontSize: 18,
-    color: "#7F8C8D",
+    color: "#404040",
   },
 });
 
