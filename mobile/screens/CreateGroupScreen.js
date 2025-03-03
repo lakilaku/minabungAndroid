@@ -1,13 +1,35 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useMutation, gql } from "@apollo/client";
+import { useNavigation } from "@react-navigation/native";
+
+const CREATE_GROUP = gql`
+  mutation CreateGroup($name: String!, $description: String) {
+    createGroup(name: $name, description: $description) {
+      name
+      description
+    }
+  }
+`;
 
 const CreateGroupScreen = () => {
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedMember, setSelectedMember] = useState("");
+  const navigation = useNavigation();
+  
+  const [createGroup, { loading, error }] = useMutation(CREATE_GROUP);
 
-  const handleCreateGroup = () => {
-    console.log("Creating group:", { groupName, description, selectedMember });
+  const handleCreateGroup = async () => {
+    try {
+      const { data } = await createGroup({
+        variables: { name: groupName, description },
+      });
+      Alert.alert("Success", "Group created successfully!", [{ text: "OK", onPress: () => navigation.goBack() }]);
+      setGroupName("");
+      setDescription("");
+    } catch (err) {
+      console.error("Error creating group:", err);
+    }
   };
 
   return (
@@ -33,8 +55,10 @@ const CreateGroupScreen = () => {
         multiline
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleCreateGroup}>
-        <Text style={styles.buttonText}>Create Group</Text>
+      {error && <Text style={styles.errorText}>Error: {error.message}</Text>}
+
+      <TouchableOpacity style={styles.button} onPress={handleCreateGroup} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? "Creating..." : "Create Group"}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -87,6 +111,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFF",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: 10,
   },
 });
 

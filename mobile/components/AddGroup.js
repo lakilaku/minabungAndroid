@@ -7,10 +7,10 @@ const AddGroup = ({ navigation }) => {
       <Text style={styles.title}>Welcome to Minabung!</Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("CreateGroup")}>
-          <Text style={styles.buttonText}>Create one</Text>
+          <Text style={styles.buttonText}>Create Group</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("JoinGroup")}>
-          <Text style={styles.buttonText}>Join One</Text>
+          <Text style={styles.buttonText}>Join Group</Text>
         </TouchableOpacity>
       </View>
     </View>
