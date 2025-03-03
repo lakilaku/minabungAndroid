@@ -7,10 +7,13 @@ import { getSecure } from '../utils/SecureStore';
 import { gql, useQuery } from '@apollo/client';
 import { FormatRupiah } from '../utils/NumberFormat';
 import AddTransactionButtons from '../components/AddTransactionButtons';
+import AddGroup from '../components/AddGroup';
+import { useNavigation } from '@react-navigation/native';
 
 const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
     getGroupByUserId(userId: $userId) {
+      _id
       name
       description
       budgets {
@@ -36,6 +39,7 @@ const GET_GROUP_BY_USER_ID = gql`
 
 const HomeScreen = () => {
   const [userId, setUserId] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +59,6 @@ const HomeScreen = () => {
     skip: !userId,
   });
 
-
   if (!userId || loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -64,34 +67,36 @@ const HomeScreen = () => {
     return <Text>Error: {error.message}</Text>;
   }
 
-  const groupData = data?.getGroupByUserId[0] || {};
+  const groupData = data?.getGroupByUserId[0] || {};  
   const budgets = groupData.budgets || [];
   const incomes = groupData.incomes || [];
-  const expenses = groupData.expenses || [];
 
   const totalIncome = incomes.reduce((acc, income) => acc + (income.amount || 0), 0);
 
   return (
-    
-    <View style={styles.container}>
-      <View style={styles.incomeContainer}>
-        <Text style={styles.incomeTitle}>Income</Text>
-        <Text style={styles.incomeAmount}>
-          {FormatRupiah(totalIncome)}
-        </Text>
+    data.getGroupByUserId.length > 0 ? (
+      <View style={styles.container}>
+        <View style={styles.incomeContainer}>
+          <Text style={styles.incomeTitle}>Income</Text>
+          <Text style={styles.incomeAmount}>
+            {FormatRupiah(totalIncome)}
+          </Text>
+        </View>
+
+        <BudgetList targetData={budgets} />
+
+        <AddTransactionButtons/>
+
+        <View style={styles.groupContainer}>
+          <Text style={styles.groupTitle}>Group</Text>
+          <Text style={styles.groupName}>{groupData.name}</Text>
+        </View>
+
+        <TransactionList groupId={groupData._id} />
       </View>
-
-      <BudgetList targetData={budgets} />
-
-      <AddTransactionButtons/>
-
-      <View style={styles.groupContainer}>
-        <Text style={styles.groupTitle}>Group</Text>
-        <Text style={styles.groupName}>{groupData.name}</Text>
-      </View>
-
-      <TransactionList transactions={expenses} />
-    </View>
+    ) : (
+      <AddGroup navigation={navigation} />
+    )
   );
 };
 
