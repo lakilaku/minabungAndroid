@@ -40,7 +40,7 @@ export default function LoginScreen() {
                     password,
                 }
             });
-            // console.log(result);
+            console.log(result);
             
             // const accessToken = result.data.login.accessToken;
             const { access_token, user } = result.data.Login;

@@ -13,6 +13,8 @@ import BudgetScreen from "../screens/BudgetScreen";
 import MenuBar from "../components/menubar";
 import ProfileScreen from "../screens/ProfileScreen";
 import AddIncomeExpenseScreen from "../screens/AddIncomeExpenseScreen";
+import JoinGroupScreen from "../screens/JoinGroupScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -90,6 +92,22 @@ export default function RootStack() {
                 headerShown: false,
               }}
             />
+            <Stack.Screen
+              name="JoinGroup"
+              component={JoinGroupScreen}
+              options={{
+                title: "JoinGroup",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="CreateGroup"
+              component={CreateGroupScreen}
+              options={{
+                title: "CreateGroup",
+                headerShown: false,
+              }}
+            />
           </>
         ) : (
           <>
@@ -106,7 +124,13 @@ export default function RootStack() {
           </>
         )}
       </Stack.Navigator>
-      {isSignedIn && <MenuBar navigation={navigation} />}
+      {
+        isSignedIn 
+        && 
+        <View style={{ backgroundColor: "#f5c400", paddingBottom: 30 }}>
+          <MenuBar navigation={navigation} />
+        </View>
+      }
     </>
   );
 }
