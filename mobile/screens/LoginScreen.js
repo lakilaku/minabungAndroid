@@ -1,203 +1,236 @@
-import { useContext, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, ImageBackground } from 'react-native';
-import { AuthContext } from '../contexts/AuthContext';
-import { gql, useMutation } from '@apollo/client';
-import { useNavigation } from '@react-navigation/native';
-import { saveSecure } from '../utils/SecureStore';
-import Modal from 'react-native-modal';
+import React, { useContext, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ImageBackground,
+} from "react-native";
+import { AuthContext } from "../contexts/AuthContext";
+import { gql, useMutation } from "@apollo/client";
+import { useNavigation } from "@react-navigation/native";
+import { saveSecure } from "../utils/SecureStore";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const LOGIN = gql`
-    mutation Login($email: String!, $password: String!) {
-        Login(email: $email, password: $password) {
-            access_token
-            user {
-                email
-                name
-                username
-                _id
-            }
-        }
+  mutation Login($email: String!, $password: String!) {
+    Login(email: $email, password: $password) {
+      access_token
+      user {
+        _id
+        name
+        username
+        email
+        gender
+        profilePicture
+        birthDate
+        groupId
+      }
     }
-`
+  }
+`;
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const { setIsSignedIn } = useContext(AuthContext);
-    const [loginAccess, { loading }] = useMutation(LOGIN);
-    
-    const navigation = useNavigation();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { setIsSignedIn } = useContext(AuthContext);
+  const [loginAccess, { loading }] = useMutation(LOGIN);
+  const navigation = useNavigation();
 
-    const [isModalVisible, setIsModalVisible] = useState(false);
+  const handleSubmitLogin = async () => {
+    try {
+      const { data } = await loginAccess({ variables: { email, password } });
+      const { access_token, user } = data.Login;
+      // Save token & user info securely
+      await saveSecure("accessToken", access_token);
+      await saveSecure("userData", JSON.stringify(user));
 
-    const handleSubmitLogin = async () => {
-        try {
-            // console.log(email, password);
-            
-            const result = await loginAccess({
-                variables: {
-                    email,
-                    password,
-                }
-            });
-            console.log(result);
-            
-            // const accessToken = result.data.login.accessToken;
-            const { access_token, user } = result.data.Login;
+      setIsSignedIn(true);
+      Alert.alert(
+        "Login Successful",
+        `Welcome back, ${user.name}!`,
+        [{ text: "OK", onPress: () => navigation.navigate("Home") }],
+        { cancelable: false }
+      );
+    } catch (error) {
+      Alert.alert("Error!", error.message);
+    }
+  };
 
-            // Simpan token & user info ke SecureStore
-            await saveSecure('accessToken', access_token);
-            await saveSecure('userData', JSON.stringify(user));
-            setIsSignedIn(true);
-            setIsModalVisible(false); 
-            Alert.alert(
-                "Login Berhasil", 
-                "Selamat datang kembali!", 
-                [
-                    { text: "OK", onPress: () => navigation.navigate('Home') },
-                ],
-                { cancelable: false }
-            );
-        } catch (error) {
-            console.log(error.message);
-            Alert.alert('Error!', error.message);
-        }
-    };
+  return (
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ImageBackground
+        source={{
+          uri: "https://i.pinimg.com/1200x/37/e4/35/37e4355509ff05bc62233d211e96f68b.jpg",
+        }}
+        style={styles.background}
+      >
+        {/* Semi‐transparent overlay to make text more readable */}
+        <View style={styles.overlay}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Minabung</Text>
+            <Text style={styles.subtitle}>Please sign in to continue</Text>
+          </View>
 
-    return (
-        <ImageBackground
-            source={{uri: (`https://image.pollinations.ai/prompt/family-finance berupa chart dan uang?width=800&height=800&nologo=true`)}}
-            style={styles.background}
-        >
-            <View style={styles.container}>
-                <Text style={styles.title}>Family Finance</Text>
-
-                <View style={styles.overlay}>
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => setIsModalVisible(true)} 
-                    >
-                        <Text style={styles.buttonText}>Login</Text>
-                    </TouchableOpacity>
-                </View>
+          {/* Form */}
+          <View style={styles.formContainer}>
+            {/* Email Input */}
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#999"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#999"
+                onChangeText={setEmail}
+                value={email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
-            <Modal
-                isVisible={isModalVisible}
-                onBackdropPress={() => setIsModalVisible(false)} 
-                onBackButtonPress={() => setIsModalVisible(false)}
-                animationIn="slideInUp" 
-                animationOut="slideOutDown" 
-                backdropOpacity={0.5} 
-                useNativeDriver
-                style={styles.modalStyle} 
-            >
-                <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>Minabung</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email"
-                        onChangeText={setEmail}
-                        value={email}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Password"
-                        onChangeText={setPassword}
-                        value={password}
-                        secureTextEntry={true}
-                    />
+            <View style={[styles.inputWrapper, { marginBottom: 5 }]}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#999"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, { marginRight: 10 }]}
+                placeholder="Password"
+                placeholderTextColor="#999"
+                onChangeText={setPassword}
+                value={password}
+                secureTextEntry
+              />
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert("Forgot Password", "Feature coming soon!")
+                }
+              >
+                <Text style={styles.forgotText}>FORGOT</Text>
+              </TouchableOpacity>
+            </View>
 
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#0077B5" />
-                    ) : (
-                        <Button title="Login" onPress={handleSubmitLogin} color="#0077B5" />
-                    )}
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color="#F7BA3E"
+                style={{ marginTop: 20 }}
+              />
+            ) : (
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleSubmitLogin}
+              >
+                <Text style={styles.loginButtonText}>LOGIN</Text>
+              </TouchableOpacity>
+            )}
 
-                    <Text style={styles.text}>Don't have an account?</Text>
-                    <TouchableOpacity
-                        onPress={() => {
-                            navigation.navigate('Register');
-                        }}
-                    >
-                        <Text style={styles.text}>Register</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modal>
-        </ImageBackground>
-    );
+            {/* Sign Up Prompt */}
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.signupLink}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ImageBackground>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    background: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        height: '100%',
-    },
-    container: {
-        flex: 1,
-        justifyContent: 'space-between', 
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#000',
-        textAlign: 'center',
-        marginTop: 50, 
-    },
-    overlay: {
-        justifyContent: 'flex-end',
-        width: '100%', 
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
-    button: {
-        backgroundColor: "#0077B5",
-        paddingVertical: 15, 
-        borderRadius: 25,
-        width: '100%', 
-    },
-    buttonText: {
-        color: "#fff",
-        fontWeight: "bold",
-        fontSize: 18, 
-        textAlign: 'center',
-    },
-    text: {
-        textAlign: 'center',
-        marginTop: 15,
-        color: '#000',
-    },
-    modalStyle: {
-        margin: 0, 
-        justifyContent: 'flex-end', 
-        alignItems: 'center',
-    },
-    modalContainer: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-        padding: 20,
-        width: '100%',
-        maxHeight: 400, 
-    },
-    modalTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    input: {
-        width: '100%',
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        marginBottom: 15,
-        paddingLeft: 10,
-        fontSize: 16,
-    },
+  flex: {
+    flex: 1,
+  },
+  background: {
+    flex: 1,
+    resizeMode: "cover",
+    justifyContent: "flex-end",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 20,
+    paddingTop: 100,
+  },
+  headerContainer: {
+    marginTop: 120,
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#999",
+  },
+  formContainer: {},
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f6f6f6",
+    borderRadius: 8,
+    marginBottom: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+  },
+  forgotText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#F7BA3E",
+  },
+  loginButton: {
+    backgroundColor: "#F7BA3E",
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginTop: 30,
+    alignItems: "center",
+  },
+  loginButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 25,
+  },
+  signupText: {
+    fontSize: 14,
+    color: "black",
+  },
+  signupLink: {
+    fontSize: 14,
+    color: "#F7BA3E",
+    fontWeight: "600",
+  },
 });
