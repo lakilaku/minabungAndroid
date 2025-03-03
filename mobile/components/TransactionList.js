@@ -2,14 +2,44 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { FormatRupiah } from '../utils/NumberFormat';
+import { gql, useQuery } from '@apollo/client';
 
-const TransactionList = ({ transactions }) => {
+const GET_THIS_MONTH_INCOME_EXPENSES = gql`
+    query GetThisMonthIncomesandExpenses($groupId: ID!) {
+        getThisMonthIncomesandExpenses(groupId: $groupId) {
+            name
+            amount
+            date
+            type
+        }
+    }
+`;
+
+
+const TransactionList = ({ groupId }) => {
     const [generatedTexts, setGeneratedTexts] = useState([]);
+
+    const { data, loading, error } = useQuery(GET_THIS_MONTH_INCOME_EXPENSES, {
+        variables: { groupId },
+        skip: !groupId,
+    });
+
+    if (loading) {
+        return <Text>Loading...</Text>;
+    }
+
+    if (error) {
+        return <Text>Error: {error.message}</Text>;
+    }
+
+    const allTransaction = data?.getThisMonthIncomesandExpenses || [];
+    
+    //   console.log(allTransaction);
 
     useEffect(() => {
         const fetchGeneratedTexts = async () => {
             const newGeneratedTexts = await Promise.all(
-                transactions.map(async (item) => {
+                allTransaction.map(async (item) => {
                     try {
                         const response = await fetch(`https://text.pollinations.ai/berikan 1 icon yang ada pada MaterialIcons https://oblador.github.io/react-native-vector-icons ${item.name} berikan 1 name tanpa ada penjelasan dan tanda " atau '`);
                         const result = await response.text();
@@ -25,25 +55,29 @@ const TransactionList = ({ transactions }) => {
         };
 
         fetchGeneratedTexts();
-    }, [transactions]); // `useEffect` hanya dijalankan ketika `transactions` berubah
+    }, [allTransaction]); // `useEffect` hanya dijalankan ketika `transactions` berubah
 
     return (
         <View style={styles.container}>
             <ScrollView style={styles.expenseContainer}>
                 <Text style={styles.expenseTitle}>All Transactions</Text>
-                {transactions.map((item, idx) => (
-                    <View key={item._id || idx.toString()} style={styles.expenseItem}>
-                        <Icon name={generatedTexts[idx] || 'help-outline'} size={24} color="#333" style={styles.expenseIcon} />
-                        <Text style={styles.expenseItemName}>{item.name}</Text>
-                        <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
-                        <Icon
-                            name={item.type === 'income' ? 'arrow-downward' : 'arrow-upward'}
-                            size={20}
-                            color={item.type === 'income' ? 'green' : 'red'}
-                            style={styles.arrowIcon}
-                        />
-                    </View>
-                ))}
+                {allTransaction.length === 0 ? (
+                    <Text style={styles.noDataText}>No transactions available</Text>
+                ) : (
+                    allTransaction.map((item, idx) => (
+                        <View key={item._id || idx.toString()} style={styles.expenseItem}>
+                            <Icon name={generatedTexts[idx]} size={24} color="#333" style={styles.expenseIcon} />
+                            <Text style={styles.expenseItemName}>{item.name}</Text>
+                            <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
+                            <Icon
+                                name={item.type === 'income' ? 'arrow-downward' : 'arrow-upward'}
+                                size={20}
+                                color={item.type === 'income' ? 'green' : 'red'}
+                                style={styles.arrowIcon}
+                            />
+                        </View>
+                    ))
+                )}
             </ScrollView>
         </View>
     );

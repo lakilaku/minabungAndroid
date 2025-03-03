@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context';
 import { getSecure } from '../utils/SecureStore';
 
 const httpLink = createHttpLink({
-  uri: 'https://gc01p3.learnify.pw/',
+  uri: 'http://localhost:4000/graphql',
 });
 
 const authLink = setContext( async (_, { headers }) => {
