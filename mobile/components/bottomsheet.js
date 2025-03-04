@@ -1,50 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { FormatRupiah } from "../utils/NumberFormat";
 
-//query GetIncomesByMonth($groupId: ID!, $month: Int!, $year: Int!) {
-//   getIncomesByMonth(groupId: $groupId, month: $month, year: $year) {
-//     _id
-//     name
-//     note
-//     amount
-//     date
-//   }
-// }
-
-// query GetIncomesByMonth($groupId: ID!, $month: Int!, $year: Int!) {
-//   getExpensesByMonth(groupId: $groupId, month: $month, year: $year) {
-//     _id
-//     name
-//     note
-//     amount
-//     date
-//     budgetId
-//   }
-// }
-
-const BottomSheetComponent = ({ bottomSheetRef, snapPoints }) => {
+const BottomSheetComponent = ({ bottomSheetRef, snapPoints, group }) => {
   const [selectedTab, setSelectedTab] = useState("Expense");
 
+  const sortedExpenses = useMemo(() => {
+    const expenses = group?.expenses || [];
+    return [...expenses].sort(
+      (a, b) => parseInt(b.date, 10) - parseInt(a.date, 10)
+    );
+  }, [group]);
+
+  const sortedIncomes = useMemo(() => {
+    const incomes = group?.incomes || [];
+    return [...incomes].sort(
+      (a, b) => parseInt(b.date, 10) - parseInt(a.date, 10)
+    );
+  }, [group]);
+
   const transactionData =
-    selectedTab === "Expense"
-      ? [
-          { key: "Food: $500" },
-          { key: "Rent: $1200" },
-          { key: "Transport: $300" },
-          { key: "Shopping: $200" },
-        ]
-      : [
-          { key: "Salary: $5000" },
-          { key: "Freelance: $1500" },
-          { key: "Investments: $200" },
-        ];
+    selectedTab === "Expense" ? sortedExpenses : sortedIncomes;
+
+  const formatDate = (dateStr) => {
+    const date = new Date(parseInt(dateStr, 10));
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.listItem}>
+      <Icon
+        name={selectedTab === "Expense" ? "remove-circle" : "add-circle"}
+        size={18}
+        color={selectedTab === "Expense" ? "red" : "green"}
+      />
+      <View style={{ marginLeft: 10 }}>
+        <Text style={styles.sheetItem}>
+          {item.name}: {FormatRupiah(item.amount)}
+        </Text>
+        <Text style={styles.sheetDate}>{formatDate(item.date)}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <BottomSheet ref={bottomSheetRef} index={0} snapPoints={snapPoints}>
       <View style={styles.bottomSheetContent}>
-        {/* Tab Selector */}
         <View style={styles.tabContainer}>
           <TabButton
             label="Expense"
@@ -59,23 +66,12 @@ const BottomSheetComponent = ({ bottomSheetRef, snapPoints }) => {
             icon="trending-down"
           />
         </View>
-
-        {/* List of Transactions */}
         <BottomSheetFlatList
           data={transactionData}
-          keyExtractor={(item) => item.key}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Icon
-                name={
-                  selectedTab === "Expense" ? "remove-circle" : "add-circle"
-                }
-                size={18}
-                color={selectedTab === "Expense" ? "red" : "green"}
-              />
-              <Text style={styles.sheetItem}>{item.key}</Text>
-            </View>
-          )}
+          keyExtractor={(item, index) =>
+            item._id ? item._id : index.toString()
+          }
+          renderItem={renderItem}
         />
       </View>
     </BottomSheet>
@@ -119,7 +115,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   selectedTab: { backgroundColor: "white" },
-  tabText: { fontSize: 16, fontWeight: "bold", marginRight: 5, color: "black" },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 5,
+    color: "black",
+  },
+  selectedTabText: { color: "black" },
   listItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -128,7 +130,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 5,
   },
-  sheetItem: { fontSize: 16, marginLeft: 10 },
+  sheetItem: { fontSize: 16 },
+  sheetDate: { fontSize: 12, color: "gray" },
 });
 
 export default BottomSheetComponent;
