@@ -9,35 +9,49 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { deleteSecure, getSecure } from "../utils/SecureStore";
+import { deleteSecure, getSecure, saveSecure } from "../utils/SecureStore";
 import { AuthContext } from "../contexts/AuthContext";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import * as ImagePicker from "expo-image-picker";
+import { lookup } from "react-native-mime-types";
 
 const UPDATEPROFILE = gql`
   mutation UpdateProfile(
     $name: String
     $username: String
     $email: String
-    $gender: String
-    $profilePicture: Upload
     $birthDate: String
   ) {
     updateProfile(
       name: $name
       username: $username
       email: $email
-      gender: $gender
-      profilePicture: $profilePicture
       birthDate: $birthDate
     ) {
       _id
       name
       username
       email
-      gender
-      profilePicture
       birthDate
       groupId
+    }
+  }
+`;
+
+const GET_GROUP_BY_USER_ID = gql`
+  query GetGroupByUserId($userId: ID!) {
+    getGroupByUserId(userId: $userId) {
+      name
+    }
+  }
+`;
+
+const UPDATE_PROFILE_PICTURE = gql`
+  mutation UpdateProfilePicture($profilePicture: Upload!) {
+    updateProfilePicture(profilePicture: $profilePicture) {
+      message
+      profilePicture
     }
   }
 `;
@@ -47,12 +61,15 @@ const ProfileScreen = () => {
   const [user, setUser] = useState();
   const [token, setToken] = useState();
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisiblePicture, setModalVisiblePicture] = useState(false);
+  const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
+  // console.log(user);
+  
   const [updates, setUpdates] = useState({
     name: "",
     username: "",
     email: "",
     birthDate: "",
-    gender: "",
   });
 
   useEffect(() => {
@@ -60,6 +77,8 @@ const ProfileScreen = () => {
       const userStr = await getSecure("userData");
       if (userStr) {
         const parsedUser = JSON.parse(userStr);
+        // console.log(parsedUser, "<<<");
+        
         if (parsedUser._id) {
           setUser(parsedUser);
           setUpdates({
@@ -67,7 +86,6 @@ const ProfileScreen = () => {
             username: parsedUser.username || "",
             email: parsedUser.email || "",
             birthDate: parsedUser.birthDate || "",
-            gender: parsedUser.gender || "",
           });
         }
       }
@@ -76,12 +94,22 @@ const ProfileScreen = () => {
       const storedToken = await getSecure("accessToken");
       if (storedToken) {
         setToken(storedToken);
+        // console.log(token);
       }
-      console.log(token);
     };
     fetchUserData();
     fetchToken();
   }, []);
+
+  const userId = user?._id;
+
+  const { data: userData, loading: userLoading, error: userError } = useQuery(GET_GROUP_BY_USER_ID, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  // console.log(userData?.getGroupByUserId.length);
+  
 
   const [updateProfileMutation, { loading, error }] =
     useMutation(UPDATEPROFILE);
@@ -93,18 +121,64 @@ const ProfileScreen = () => {
           name: updates.name,
           username: updates.username,
           email: updates.email,
-          gender: updates.gender,
           birthDate: updates.birthDate,
-          profilePicture: user.profilePicture, // Handle image upload later
         },
         context: {
           headers: { authorization: `Bearer ${token}` },
         },
       });
-      setUser(data.updateProfile);
-      setModalVisible(false);
+      if (data?.updateProfile) {
+        setUser(data.updateProfile);
+  
+        await saveSecure("userData", JSON.stringify(data.updateProfile));
+  
+        setModalVisible(false);
+      }
     } catch (err) {
       console.error("Error updating profile:", err);
+    }
+  };
+
+  const handleChoosePhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permission to access gallery is required!");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const fileType = lookup(uri) || "image/jpeg";
+      const fileName = uri.split("/").pop();
+  
+      try {
+        const { data } = await updateProfilePicture({
+          variables: {
+            profilePicture: {
+              uri,
+              type: fileType,
+              name: fileName,
+            },
+          },
+          context: { headers: { authorization: `Bearer ${token}` } },
+        });
+  
+        if (data?.updateProfilePicture) {
+          setUser((prev) => ({
+            ...prev,
+            profilePicture: data.updateProfilePicture.profilePicture,
+          }));
+          setModalVisiblePicture(false);
+        }
+      } catch (err) {
+        console.error("Error updating profile picture:", err);
+      }
     }
   };
 
@@ -112,29 +186,49 @@ const ProfileScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.cover} />
-        <Image
-          source={{
-            uri: user?.profilePicture || "https://via.placeholder.com/150",
-          }}
-          style={styles.profileImage}
-        />
+        <TouchableOpacity onPress={() => setModalVisiblePicture(true)}>
+          <Image
+            source={{
+              uri: user?.profilePicture || `https://image.pollinations.ai/prompt/${user?.name} 1 berupa wajah?width=800&height=800&nologo=true`,
+            }}
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
       </View>
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => setModalVisible(true)} // Buka modal edit
+      >
+        <Icon name="edit" size={24} color="#fff" />
+      </TouchableOpacity>
+      <Text style={styles.edit}>Edit Profile</Text>
+      <TouchableOpacity style={styles.logoutButton} onPress={async () => {
+          await deleteSecure("accessToken");
+          setIsSignedIn(false);
+        }}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
 
       {/* User Information */}
       <View style={styles.infoContainer}>
         <Text style={styles.name}>{user?.name || "User Name"}</Text>
         <Text style={styles.username}>
-          {user?.username ? "@" + user.username : "@username"}
+          {user?.username ? "@️" + user.username : "@username"}
         </Text>
         <Text style={styles.infoText}>
-          Email: {user?.email || "email@example.com"}
+        📧 Email: {user?.email || "email@example.com"}
         </Text>
-        <Text style={styles.infoText}>Gender: {user?.gender || "N/A"}</Text>
+        {/* <Text style={styles.infoText}>Gender: {user?.gender || "N/A"}</Text> */}
         <Text style={styles.infoText}>
-          Birth Date: {user?.birthDate || "N/A"}
+        📆 Birth Date: {user?.birthDate || "N/A"}
         </Text>
+        <View style={styles.separator} />
+        <View style={styles.textCenter}>
+            <Text style={styles.textSmall}>Group</Text>
+            <Text style={styles.textCounter}>{userData?.getGroupByUserId.length}</Text>
+        </View>
+        <View style={styles.separator} />
       </View>
-
       {/* Options Buttons */}
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.optionButton}>
@@ -143,13 +237,13 @@ const ProfileScreen = () => {
         <TouchableOpacity style={styles.optionButton}>
           <Text style={styles.optionText}>General Settings</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.optionButton}
           onPress={() => setModalVisible(true)}
         >
           <Text style={styles.optionText}>Edit Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           style={[styles.optionButton, { backgroundColor: "#f52d56" }]}
           onPress={async () => {
             await deleteSecure("accessToken");
@@ -157,7 +251,7 @@ const ProfileScreen = () => {
           }}
         >
           <Text style={[styles.optionText, { color: "#fff" }]}>Logout</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Edit Profile Modal */}
@@ -198,12 +292,6 @@ const ProfileScreen = () => {
                 setUpdates({ ...updates, birthDate: text })
               }
             />
-            <TextInput
-              style={styles.input}
-              placeholder={user?.gender || "Gender"}
-              value={updates.gender}
-              onChangeText={(text) => setUpdates({ ...updates, gender: text })}
-            />
             {/* Profile Picture Upload later */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -230,6 +318,38 @@ const ProfileScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Modal for Image Selection */}
+      <Modal visible={modalVisiblePicture} transparent={true} animationType="slide">
+        <View style={uploadPictureStyles.modalOverlayPicture}>
+          <View style={uploadPictureStyles.modalContentPicture}>
+            <Text style={uploadPictureStyles.modalTitlePicture}>Update Profile Picture</Text>
+
+            {/* <TouchableOpacity 
+              style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.confirmButtonPicture]} 
+              onPress={handleChoosePhoto}>
+              <Text style={uploadPictureStyles.modalButtonTextPicture}>Choose from Gallery</Text>
+            </TouchableOpacity> */}
+
+            <View style={uploadPictureStyles.buttonContainerPicture}>
+              <TouchableOpacity
+                style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.confirmButtonPicture]}
+                onPress={handleChoosePhoto}
+              >
+                <Text style={uploadPictureStyles.modalButtonTextPicture}>Upload Picture</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.cancelButtonPicture]}
+                onPress={() => setModalVisiblePicture(false)}
+              >
+                <Text style={uploadPictureStyles.modalButtonTextPicture}>Cancel</Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -243,6 +363,8 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: "#FFC067",
     position: "relative",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   cover: {
     flex: 1,
@@ -326,6 +448,104 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  logoutButton: {
+    position: "absolute",
+    top: 210, // Sesuaikan dengan posisi yang diinginkan
+    right: 20, // Letakkan di pojok kanan atas
+    backgroundColor: "#f52d56",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    elevation: 3, // Tambahkan shadow untuk tampilan lebih baik
+  },
+  
+  logoutText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  editButton: {
+    position: "absolute",
+    top: 20, // Atur posisi vertikal
+    right: 20, // Pojok kanan atas
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Warna transparan agar lebih estetik
+    padding: 10,
+    borderRadius: 50, // Biar bentuknya bulat
+    elevation: 3, // Tambahkan shadow (hanya untuk Android)
+  },
+  edit: {
+    position: "absolute",
+    top: 55, // Atur posisi vertikal
+    right: 20, // Pojok kanan atas
+    padding: 10,
+  },
+  textCenter: {
+    alignItems: "center",
+  },
+  textSmall: {
+      fontSize: 14,
+      opacity: 0.5,
+  },
+  textCounter: {
+      fontSize: 16,
+      fontWeight: "bold",
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderColor: '#D3D3D3',
+    marginTop: 16,
+  },
+});
+
+const uploadPictureStyles = StyleSheet.create({
+  modalOverlayPicture: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContentPicture: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitlePicture: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  modalButtonPicture: {
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 5,
+  },
+  modalButtonTextPicture: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  buttonContainerPicture: {
+    flexDirection: "row", // Membuat tombol sejajar kiri-kanan
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 10,
+  },
+  cancelButtonPicture: {
+    backgroundColor: "#ccc",
+    flex: 1,
+    marginLeft: 5,
+  },
+  confirmButtonPicture: {
+    backgroundColor: "#102A71",
+    flex: 1,
+    marginRight: 5,
   },
 });
 
