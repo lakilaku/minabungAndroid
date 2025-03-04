@@ -16,6 +16,7 @@ import AddIncomeExpenseScreen from "../screens/AddIncomeExpenseScreen";
 import JoinGroupScreen from "../screens/JoinGroupScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
 import AddGroup from "../components/AddGroup";
+import TabNavigator from "./TabNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -63,7 +64,7 @@ export default function RootStack() {
           <>
             <Stack.Screen
               name="Home"
-              component={HomeScreen}
+              component={TabNavigator}
               options={{
                 title: "Overview",
                 headerShown: false,
@@ -133,11 +134,11 @@ export default function RootStack() {
           </>
         )}
       </Stack.Navigator>
-      {isSignedIn && (
+      {/* {isSignedIn && (
         <View style={{ backgroundColor: "#f5c400", paddingBottom: 30 }}>
           <MenuBar navigation={navigation} />
         </View>
-      )}
+      )} */}
     </>
   );
 }
