@@ -77,7 +77,6 @@ const ProfileScreen = () => {
       if (storedToken) {
         setToken(storedToken);
       }
-      console.log(token);
     };
     fetchUserData();
     fetchToken();
@@ -153,6 +152,8 @@ const ProfileScreen = () => {
           style={[styles.optionButton, { backgroundColor: "#f52d56" }]}
           onPress={async () => {
             await deleteSecure("accessToken");
+            await deleteSecure("userData");
+            await deleteSecure("groupData");
             setIsSignedIn(false);
           }}
         >

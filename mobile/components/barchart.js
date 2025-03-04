@@ -48,7 +48,7 @@ const BarChartComponent = ({ group }) => {
     });
   }
 
-  const maxBarValue = Math.max(...barData.map((item) => item.value), 1000);
+  const maxBarValue = Math.max(...barData.map((item) => item.value));
 
   return (
     <View style={styles.container}>
