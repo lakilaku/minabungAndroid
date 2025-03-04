@@ -2,51 +2,106 @@ import React from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
-//weekly in a month
-// //query Query($groupId: ID!) {
-//   getThisMonthIncomesandExpenses(groupId: $groupId) {
-//     _id
-//     name
-//     note
-//     amount
-//     date
-//     budgetId
-//     type
-//   }
-// }
-const barData = [
-  { value: 2000000, label: "Jan", frontColor: "#177AD5" },
-  { value: 1000000, frontColor: "#ED6665" },
-  { value: 50, label: "Feb", frontColor: "#177AD5" },
-  { value: 40, frontColor: "#ED6665" },
-  { value: 75, label: "Mar", frontColor: "#177AD5" },
-  { value: 25, frontColor: "#ED6665" },
-  { value: 30, label: "Apr", frontColor: "#177AD5" },
-  { value: 20, frontColor: "#ED6665" },
-];
+const BarChartComponent = ({ group }) => {
+  const incomes = group?.incomes || [];
+  const expenses = group?.expenses || [];
+  const now = new Date();
 
-const BarChartComponent = () => {
+  // Filter incomes and expenses for the current month using Number() to parse the date.
+  const currentIncomes = incomes.filter((income) => {
+    const d = new Date(Number(income.date));
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
+  });
+  const currentExpenses = expenses.filter((expense) => {
+    const d = new Date(Number(expense.date));
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
+  });
+
+  const getWeekOfMonth = (dateStr) => {
+    if (!dateStr) return 1;
+    const date = new Date(Number(dateStr));
+    if (isNaN(date.getTime())) return 1;
+    return Math.ceil(date.getDate() / 7);
+  };
+
+  const weeklyData = {};
+  currentIncomes.forEach((income) => {
+    const week = getWeekOfMonth(income.date);
+    if (!weeklyData[week]) weeklyData[week] = { income: 0, expense: 0 };
+    weeklyData[week].income += income.amount || 0;
+  });
+  currentExpenses.forEach((expense) => {
+    const week = getWeekOfMonth(expense.date);
+    if (!weeklyData[week]) weeklyData[week] = { income: 0, expense: 0 };
+    weeklyData[week].expense += expense.amount || 0;
+  });
+
+  const weeks = Object.keys(weeklyData)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const barData = weeks.map((week) => ({
+    label: `Week ${week}`,
+    data: [
+      { value: weeklyData[week].income, frontColor: "#177AD5" },
+      { value: weeklyData[week].expense, frontColor: "#ED6665" },
+    ],
+  }));
+
+  if (barData.length === 0) {
+    barData.push({
+      label: "Week 1",
+      data: [
+        { value: 0, frontColor: "#177AD5" },
+        { value: 0, frontColor: "#ED6665" },
+      ],
+    });
+  }
+
+  const maxBarValue = Math.max(
+    ...barData.flatMap((item) => item.data.map((bar) => bar.value)),
+    1000
+  );
+
+  const Legend = ({ color, text }) => (
+    <View
+      style={{ flexDirection: "row", alignItems: "center", marginRight: 10 }}
+    >
+      <View
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: 6,
+          backgroundColor: color,
+          marginRight: 5,
+        }}
+      />
+      <Text style={{ color: "#404040" }}>{text}</Text>
+    </View>
+  );
+
   return (
     <View style={{ paddingHorizontal: 40, borderRadius: 10 }}>
-      {/* Title Section */}
       <View
         style={{
           marginVertical: 10,
           flexDirection: "row",
-          justifyContent: "space-evenly",
+          justifyContent: "center",
           marginBottom: 24,
-          marginHorizontal: 20,
         }}
       >
         <Legend color="#177AD5" text="Income" />
         <Legend color="#ED6665" text="Expense" />
       </View>
-
-      {/* Bar Chart */}
       <BarChart
         data={barData}
-        barWidth={7}
-        spacing={20}
+        isGrouped
+        barWidth={10}
+        spacing={30}
         roundedTop
         roundedBottom
         hideRules
@@ -54,25 +109,10 @@ const BarChartComponent = () => {
         yAxisThickness={0}
         yAxisTextStyle={{ color: "gray" }}
         noOfSections={4}
-        maxValue={10000000}
+        maxValue={maxBarValue}
       />
     </View>
   );
 };
-
-const Legend = ({ color, text }) => (
-  <View style={{ flexDirection: "row", alignItems: "center" }}>
-    <View
-      style={{
-        height: 12,
-        width: 12,
-        borderRadius: 6,
-        backgroundColor: color,
-        marginRight: 8,
-      }}
-    />
-    <Text style={{ color: "#404040" }}>{text}</Text>
-  </View>
-);
 
 export default BarChartComponent;

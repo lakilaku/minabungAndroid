@@ -9,12 +9,12 @@ import {
 } from "react-native";
 import TransactionList from "../components/TransactionList";
 import BudgetList from "../components/BudgetList";
-import { getSecure } from "../utils/SecureStore";
+import { getSecure, saveSecure } from "../utils/SecureStore";
 import { gql, useQuery } from "@apollo/client";
 import { FormatRupiah } from "../utils/NumberFormat";
 import AddTransactionButtons from "../components/AddTransactionButtons";
 import AddGroup from "../components/AddGroup";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
@@ -35,10 +35,13 @@ const GET_GROUP_BY_USER_ID = gql`
       incomes {
         name
         amount
+        date
       }
       expenses {
         name
         amount
+        date
+        budgetId
       }
     }
   }
@@ -50,44 +53,48 @@ const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
 
-  // Fetch user data on mount.
   useEffect(() => {
     const fetchUserData = async () => {
       const user = await getSecure("userData");
       if (user) {
         const parsedUser = JSON.parse(user);
-        if (parsedUser._id) {
-          setUserId(parsedUser._id);
-        }
+        if (parsedUser._id) setUserId(parsedUser._id);
       }
     };
     fetchUserData();
   }, []);
 
-  // Run the query regardless of early returns.
+  useEffect(() => {
+    const fetchStoredGroup = async () => {
+      const storedGroup = await getSecure("selectedGroup");
+      if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
+    };
+    fetchStoredGroup();
+  }, []);
+
   const { data, loading, error, refetch } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
     skip: !userId,
   });
 
-  // Compute groupList unconditionally.
-  const groupList = data?.getGroupByUserId || [];
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
-  // Set a default group if none is selected.
+  const groupList = data?.getGroupByUserId || [];
   useEffect(() => {
     if (groupList.length > 0 && !selectedGroup) {
-      setSelectedGroup(groupList[0]);
+      const defaultGroup = groupList[0];
+      setSelectedGroup(defaultGroup);
+      saveSecure("selectedGroup", JSON.stringify(defaultGroup));
     }
   }, [groupList, selectedGroup]);
 
-  // Conditional returns can come after all hooks are declared.
-  if (!userId || loading) {
+  if (!userId || loading)
     return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
-  if (error) {
-    return <Text>Error: {error.message}</Text>;
-  }
+  if (error) return <Text>Error: {error.message}</Text>;
 
   const budgets = selectedGroup?.budgets || [];
   const incomes = selectedGroup?.incomes || [];
@@ -102,16 +109,12 @@ const HomeScreen = () => {
         <Text style={styles.incomeTitle}>Income</Text>
         <Text style={styles.incomeAmount}>{FormatRupiah(totalIncome)}</Text>
       </View>
-
       <BudgetList targetData={budgets} />
-
       <AddTransactionButtons
         navigation={navigation}
         groupId={selectedGroup?._id}
         refetch={refetch}
       />
-
-      {/* Group container opens the modal */}
       <TouchableOpacity
         style={styles.groupContainer}
         onPress={() => setModalVisible(true)}
@@ -119,10 +122,7 @@ const HomeScreen = () => {
         <Text style={styles.groupTitle}>Group</Text>
         <Text style={styles.groupName}>{selectedGroup?.name}</Text>
       </TouchableOpacity>
-
       <TransactionList groupId={selectedGroup?._id} />
-
-      {/* Modern styled Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -132,6 +132,7 @@ const HomeScreen = () => {
                 key={group._id}
                 onPress={() => {
                   setSelectedGroup(group);
+                  saveSecure("selectedGroup", JSON.stringify(group));
                   setModalVisible(false);
                 }}
               >

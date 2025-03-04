@@ -1,63 +1,48 @@
-import React, { useRef, useMemo, useState } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
 import BottomSheetComponent from "../components/bottomsheet";
 import BarChartComponent from "../components/barchart";
 import PieChartComponent from "../components/piechart";
-
-// const GET_ALL_TRANSACTIONS = gql``
-
-// const GET_THIS_MONTH_EXPENSES = gql`
-//   query GetThisMonthExpenses($groupId: ID!) {
-//     getThisMonthExpenses(groupId: $groupId) {
-//       _id
-//       name
-//       note
-//       amount
-//       date
-//       budgetId
-//     }
-//   }
-// `;
-
-// const GET_THIS_MONTH_INCOMES = gql`
-//   query GetThisMonthIncomes($groupId: ID!) {
-//     getThisMonthIncomes(groupId: $groupId) {
-//       _id
-//       name
-//       note
-//       amount
-//       date
-//     }
-//   }
-// `;
+import { getSecure } from "../utils/SecureStore";
 
 const BudgetScreen = () => {
+  const [group, setGroup] = useState(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
+  console.log(group);
+  useEffect(() => {
+    const fetchGroup = async () => {
+      const storedGroup = await getSecure("selectedGroup");
+      if (storedGroup) setGroup(JSON.parse(storedGroup));
+    };
+    fetchGroup();
+  }, []);
+
+  if (!group) return <ActivityIndicator size="large" color="#0000ff" />;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F9D976" }}>
+    <View style={styles.container}>
       <View style={styles.topContainer}>
-        <Text style={styles.title}>Aqbils Family</Text>
+        <Text style={styles.title}>{group.name}</Text>
         <Text style={styles.subTitle}>This month</Text>
       </View>
-
-      {/* Pie Chart */}
-      <PieChartComponent />
-
-      {/* Bar Chart */}
-      <BarChartComponent />
-
-      {/* Bottom Sheet */}
+      <PieChartComponent group={group} />
+      <View style={{ height: 50 }} />
+      <BarChartComponent group={group} />
       <BottomSheetComponent
         bottomSheetRef={bottomSheetRef}
         snapPoints={snapPoints}
+        group={group}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9D976",
+  },
   topContainer: {
     justifyContent: "center",
     padding: 20,
