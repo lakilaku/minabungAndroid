@@ -1,24 +1,44 @@
-import { View, Text, ScrollView, StyleSheet, Modal, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { FormatRupiah } from '../utils/NumberFormat';
-import { gql, useQuery, useMutation } from '@apollo/client';
-import { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Button,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { FormatRupiah } from "../utils/NumberFormat";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import { useState } from "react";
 
 const GET_THIS_MONTH_INCOME_EXPENSES = gql`
   query GetThisMonthIncomesandExpenses($groupId: ID!) {
     getThisMonthIncomesandExpenses(groupId: $groupId) {
-        _id
-        name
-        amount
-        date
-        type
+      _id
+      name
+      amount
+      date
+      type
     }
   }
 `;
 
 const UPDATE_INCOME = gql`
-  mutation UpdateIncome($updateIncomeId: ID!, $groupId: ID!, $amount: Float, $name: String) {
-    updateIncome(id: $updateIncomeId, groupId: $groupId, amount: $amount, name: $name) {
+  mutation UpdateIncome(
+    $updateIncomeId: ID!
+    $groupId: ID!
+    $amount: Float
+    $name: String
+  ) {
+    updateIncome(
+      id: $updateIncomeId
+      groupId: $groupId
+      amount: $amount
+      name: $name
+    ) {
       name
       amount
     }
@@ -32,8 +52,18 @@ const DELETE_INCOME = gql`
 `;
 
 const UPDATE_EXPENSE = gql`
-  mutation UpdateExpense($updateExpenseId: ID!, $name: String, $amount: Float, $budgetId: ID) {
-    updateExpense(id: $updateExpenseId, name: $name, amount: $amount, budgetId: $budgetId) {
+  mutation UpdateExpense(
+    $updateExpenseId: ID!
+    $name: String
+    $amount: Float
+    $budgetId: ID
+  ) {
+    updateExpense(
+      id: $updateExpenseId
+      name: $name
+      amount: $amount
+      budgetId: $budgetId
+    ) {
       name
       amount
     }
@@ -50,20 +80,31 @@ const DELETE_EXPENSE = gql`
 `;
 
 const TransactionList = ({ groupId }) => {
-  const { data, loading, error, refetch } = useQuery(GET_THIS_MONTH_INCOME_EXPENSES, {
-    variables: { groupId },
-    skip: !groupId,
-  });
+  const { data, loading, error, refetch } = useQuery(
+    GET_THIS_MONTH_INCOME_EXPENSES,
+    {
+      variables: { groupId },
+      skip: !groupId,
+    }
+  );
 
-  const [updateIncome] = useMutation(UPDATE_INCOME, { onCompleted: () => refetch() });
-  const [deleteIncome] = useMutation(DELETE_INCOME, { onCompleted: () => refetch() });
-  const [updateExpense] = useMutation(UPDATE_EXPENSE, { onCompleted: () => refetch() });
-  const [deleteExpense] = useMutation(DELETE_EXPENSE, { onCompleted: () => refetch() });
+  const [updateIncome] = useMutation(UPDATE_INCOME, {
+    onCompleted: () => refetch(),
+  });
+  const [deleteIncome] = useMutation(DELETE_INCOME, {
+    onCompleted: () => refetch(),
+  });
+  const [updateExpense] = useMutation(UPDATE_EXPENSE, {
+    onCompleted: () => refetch(),
+  });
+  const [deleteExpense] = useMutation(DELETE_EXPENSE, {
+    onCompleted: () => refetch(),
+  });
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
 
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>Error: {error.message}</Text>;
@@ -140,11 +181,15 @@ const TransactionList = ({ groupId }) => {
             <TouchableOpacity key={item._id} onPress={() => openModal(item)}>
               <View style={styles.expenseItem}>
                 <Text style={styles.expenseItemName}>{item.name}</Text>
-                <Text style={styles.expenseItemAmount}>{FormatRupiah(item.amount)}</Text>
+                <Text style={styles.expenseItemAmount}>
+                  {FormatRupiah(item.amount)}
+                </Text>
                 <Icon
-                  name={item.type === 'income' ? 'arrow-downward' : 'arrow-upward'}
+                  name={
+                    item.type === "income" ? "arrow-downward" : "arrow-upward"
+                  }
                   size={20}
-                  color={item.type === 'income' ? 'green' : 'red'}
+                  color={item.type === "income" ? "green" : "red"}
                   style={styles.arrowIcon}
                 />
               </View>
@@ -152,30 +197,47 @@ const TransactionList = ({ groupId }) => {
           ))
         )}
       </ScrollView>
-      
-        <Modal visible={modalVisible} animationType="slide" transparent={true}>
-            <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                <Text>Edit Transaction</Text>
-                <TextInput style={styles.input} value={name} onChangeText={setName} />
-                <TextInput style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" />
-                
-                {/* Button Container */}
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={[styles.button, styles.updateButton]} onPress={handleUpdate}>
-                    <Text style={styles.buttonText}>Update</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
-                    <Text style={styles.buttonText}>Delete</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={() => setModalVisible(false)}>
-                    <Text style={styles.buttonText}>Close</Text>
-                    </TouchableOpacity>
-                </View>
-                </View>
-            </View>
-        </Modal>
 
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Edit Transaction</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              style={styles.input}
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+
+            {/* Button Container */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.updateButton]}
+                onPress={handleUpdate}
+              >
+                <Text style={styles.buttonText}>Update</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={handleDelete}
+              >
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.closeButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -183,11 +245,11 @@ const TransactionList = ({ groupId }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5c400',
     paddingHorizontal: 10,
+    paddingTop: 15,
   },
   expenseContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
     padding: 16,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -195,19 +257,19 @@ const styles = StyleSheet.create({
   },
   expenseTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 16,
     marginBottom: 10,
-    color: '#000',
+    color: "#000",
   },
   expenseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 10,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -215,62 +277,62 @@ const styles = StyleSheet.create({
   expenseItemName: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   expenseItemAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
   },
   arrowIcon: {
     marginLeft: 10,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: 300,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   input: {
-    width: '100%',
+    width: "100%",
     padding: 10,
     borderWidth: 1,
     marginBottom: 10,
     borderRadius: 5,
   },
   buttonContainer: {
-    flexDirection: 'row',  // Susun horizontal
-    justifyContent: 'space-between', // Rata ke samping
-    width: '100%', // Penuhi lebar modal
+    flexDirection: "row", // Susun horizontal
+    justifyContent: "space-between", // Rata ke samping
+    width: "100%", // Penuhi lebar modal
     marginTop: 10,
   },
   button: {
     flex: 1, // Agar tombol sama besar
     padding: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 5,
     marginHorizontal: 5, // Beri sedikit jarak antar tombol
   },
   updateButton: {
-    backgroundColor: '#102a71',
+    backgroundColor: "#102a71",
   },
   deleteButton: {
-    backgroundColor: '#9109',
+    backgroundColor: "#9109",
   },
   closeButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

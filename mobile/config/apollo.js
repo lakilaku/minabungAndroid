@@ -3,7 +3,7 @@ import { setContext } from "@apollo/client/link/context";
 import { getSecure } from "../utils/SecureStore";
 
 const httpLink = createHttpLink({
-  uri: "http://192.168.18.25:4000/graphql",
+  uri: "https://minabung.kyoutaroo.com/graphql",
 });
 
 const authLink = setContext(async (_, { headers }) => {

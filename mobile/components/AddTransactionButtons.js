@@ -1,11 +1,32 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Alert, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Alert,
+  ScrollView,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation } from "@apollo/client";
 
 const ADD_BUDGET = gql`
-  mutation AddBudget($groupId: ID!, $name: String!, $limit: Float!, $color: String, $icon: String) {
-    addBudget(groupId: $groupId, name: $name, limit: $limit, color: $color, icon: $icon) {
+  mutation AddBudget(
+    $groupId: ID!
+    $name: String!
+    $limit: Float!
+    $color: String
+    $icon: String
+  ) {
+    addBudget(
+      groupId: $groupId
+      name: $name
+      limit: $limit
+      color: $color
+      icon: $icon
+    ) {
       name
       limit
       icon
@@ -14,8 +35,23 @@ const ADD_BUDGET = gql`
   }
 `;
 
-const COLOR_OPTIONS = ["#3498db", "#e74222", "#2ecc71", "#f13023", "#9b59b6", "#34495e"];
-const ICON_OPTIONS = ["restaurant", "theaters", "school", "devices", "airplane-ticket", "shopping-cart", "attach-money"];
+const COLOR_OPTIONS = [
+  "#3498db",
+  "#e74222",
+  "#2ecc71",
+  "#f13023",
+  "#9b59b6",
+  "#34495e",
+];
+const ICON_OPTIONS = [
+  "restaurant",
+  "theaters",
+  "school",
+  "devices",
+  "airplane-ticket",
+  "shopping-cart",
+  "attach-money",
+];
 
 const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -58,16 +94,22 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
   return (
     <View style={styles.buttonContainer}>
       {/* Tombol Add Transaction */}
-      <TouchableOpacity style={[styles.addButton, styles.addIncomeButton]} onPress={() => navigation.navigate("Add")}>
-        <Text style={styles.buttonText}>Add Transaction</Text>
+      <TouchableOpacity
+        style={[styles.addButton, styles.addIncomeButton]}
+        onPress={() => navigation.navigate("Add")}
+      >
+        <Text style={styles.buttonText}>Transaction</Text>
         <View style={styles.iconCircleGreen}>
           <Icon name="add" size={24} color="white" />
         </View>
       </TouchableOpacity>
 
       {/* Tombol Add Budget */}
-      <TouchableOpacity style={[styles.addButton, styles.addExpenseButton]} onPress={() => setModalVisible(true)}>
-        <Text style={styles.buttonText}>Add Budget</Text>
+      <TouchableOpacity
+        style={[styles.addButton, styles.addExpenseButton]}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.buttonText}>Budget</Text>
         <View style={styles.iconCircleGreen}>
           <Icon name="add" size={24} color="white" />
         </View>
@@ -78,15 +120,30 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Budget</Text>
 
-            <TextInput style={styles.input} placeholder="Budget Name" value={budgetName} onChangeText={setBudgetName} />
-            <TextInput style={styles.input} placeholder="Limit Amount" keyboardType="numeric" value={budgetLimit} onChangeText={setBudgetLimit} />
+            <TextInput
+              style={styles.input}
+              placeholder="Budget Name"
+              value={budgetName}
+              onChangeText={setBudgetName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Limit Amount"
+              keyboardType="numeric"
+              value={budgetLimit}
+              onChangeText={setBudgetLimit}
+            />
 
             <Text style={styles.label}>Choose Color:</Text>
             <View style={styles.colorContainer}>
               {COLOR_OPTIONS.map((color) => (
                 <TouchableOpacity
                   key={color}
-                  style={[styles.colorOption, { backgroundColor: color }, budgetColor === color && styles.selectedColor]}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    budgetColor === color && styles.selectedColor,
+                  ]}
                   onPress={() => setBudgetColor(color)}
                 />
               ))}
@@ -95,17 +152,37 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
             <Text style={styles.label}>Choose Icon:</Text>
             <ScrollView horizontal>
               {ICON_OPTIONS.map((icon) => (
-                <TouchableOpacity key={icon} onPress={() => setBudgetIcon(icon)} style={[styles.iconOption, budgetIcon === icon && styles.selectedIcon]}>
-                  <Icon name={icon} size={32} color={budgetIcon === icon ? "black" : "gray"} />
+                <TouchableOpacity
+                  key={icon}
+                  onPress={() => setBudgetIcon(icon)}
+                  style={[
+                    styles.iconOption,
+                    budgetIcon === icon && styles.selectedIcon,
+                  ]}
+                >
+                  <Icon
+                    name={icon}
+                    size={32}
+                    color={budgetIcon === icon ? "black" : "gray"}
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleAddBudget} disabled={loading}>
-              <Text style={styles.submitButtonText}>{loading ? "Saving..." : "Add Budget"}</Text>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleAddBudget}
+              disabled={loading}
+            >
+              <Text style={styles.submitButtonText}>
+                {loading ? "Saving..." : "Add Budget"}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             {error && <Text style={styles.errorText}>{error.message}</Text>}
@@ -183,10 +260,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
   },
-  label: { 
-    fontSize: 16, 
-    fontWeight: "bold", 
-    marginVertical: 10 
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginVertical: 10,
   },
   colorContainer: { flexDirection: "row", marginBottom: 15 },
   colorOption: { width: 40, height: 40, borderRadius: 20, marginHorizontal: 5 },

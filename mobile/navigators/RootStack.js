@@ -15,6 +15,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import AddIncomeExpenseScreen from "../screens/AddIncomeExpenseScreen";
 import JoinGroupScreen from "../screens/JoinGroupScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
+import AddGroup from "../components/AddGroup";
 
 const Stack = createNativeStackNavigator();
 
@@ -105,6 +106,14 @@ export default function RootStack() {
               component={CreateGroupScreen}
               options={{
                 title: "CreateGroup",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="AddGroup"
+              component={AddGroup}
+              options={{
+                title: "AddGroup",
                 headerShown: false,
               }}
             />
