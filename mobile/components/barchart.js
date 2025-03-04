@@ -1,118 +1,116 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
 const BarChartComponent = ({ group }) => {
-  const incomes = group?.incomes || [];
+  const budgets = group?.budgets || [];
   const expenses = group?.expenses || [];
-  const now = new Date();
 
-  // Filter incomes and expenses for the current month using Number() to parse the date.
-  const currentIncomes = incomes.filter((income) => {
-    const d = new Date(Number(income.date));
-    return (
-      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    );
+  // Build a single array of bars, each budget becomes 2 items:
+  // 1) Budget Limit (blue) with label
+  // 2) Total Expense (red) without label
+  const barData = [];
+  budgets.forEach((budget) => {
+    const totalExpense = expenses
+      .filter((exp) => exp.budgetId === budget._id)
+      .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+    // First bar: label + budget limit
+    barData.push({
+      value: budget.limit,
+      label: budget.name,
+      spacing: 2,
+      labelWidth: 60,
+      labelTextStyle: { color: "gray" },
+      frontColor: "#177AD5",
+    });
+
+    // Second bar: total expense (no label so it shows right after the first)
+    barData.push({
+      value: totalExpense,
+      frontColor: "#ED6665",
+    });
   });
-  const currentExpenses = expenses.filter((expense) => {
-    const d = new Date(Number(expense.date));
-    return (
-      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    );
-  });
-
-  const getWeekOfMonth = (dateStr) => {
-    if (!dateStr) return 1;
-    const date = new Date(Number(dateStr));
-    if (isNaN(date.getTime())) return 1;
-    return Math.ceil(date.getDate() / 7);
-  };
-
-  const weeklyData = {};
-  currentIncomes.forEach((income) => {
-    const week = getWeekOfMonth(income.date);
-    if (!weeklyData[week]) weeklyData[week] = { income: 0, expense: 0 };
-    weeklyData[week].income += income.amount || 0;
-  });
-  currentExpenses.forEach((expense) => {
-    const week = getWeekOfMonth(expense.date);
-    if (!weeklyData[week]) weeklyData[week] = { income: 0, expense: 0 };
-    weeklyData[week].expense += expense.amount || 0;
-  });
-
-  const weeks = Object.keys(weeklyData)
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  const barData = weeks.map((week) => ({
-    label: `Week ${week}`,
-    data: [
-      { value: weeklyData[week].income, frontColor: "#177AD5" },
-      { value: weeklyData[week].expense, frontColor: "#ED6665" },
-    ],
-  }));
 
   if (barData.length === 0) {
+    // Provide a fallback if there are no budgets
     barData.push({
-      label: "Week 1",
-      data: [
-        { value: 0, frontColor: "#177AD5" },
-        { value: 0, frontColor: "#ED6665" },
-      ],
+      value: 0,
+      label: "No Budgets",
+      spacing: 2,
+      labelWidth: 60,
+      labelTextStyle: { color: "gray" },
+      frontColor: "#177AD5",
+    });
+    barData.push({
+      value: 0,
+      frontColor: "#ED6665",
     });
   }
 
-  const maxBarValue = Math.max(
-    ...barData.flatMap((item) => item.data.map((bar) => bar.value)),
-    1000
-  );
-
-  const Legend = ({ color, text }) => (
-    <View
-      style={{ flexDirection: "row", alignItems: "center", marginRight: 10 }}
-    >
-      <View
-        style={{
-          width: 12,
-          height: 12,
-          borderRadius: 6,
-          backgroundColor: color,
-          marginRight: 5,
-        }}
-      />
-      <Text style={{ color: "#404040" }}>{text}</Text>
-    </View>
-  );
+  const maxBarValue = Math.max(...barData.map((item) => item.value), 1000);
 
   return (
-    <View style={{ paddingHorizontal: 40, borderRadius: 10 }}>
-      <View
-        style={{
-          marginVertical: 10,
-          flexDirection: "row",
-          justifyContent: "center",
-          marginBottom: 24,
-        }}
-      >
-        <Legend color="#177AD5" text="Income" />
-        <Legend color="#ED6665" text="Expense" />
+    <View style={styles.container}>
+      <View style={styles.legendRow}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: "#177AD5" }]} />
+          <Text style={styles.legendText}>Budget Limit</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: "#ED6665" }]} />
+          <Text style={styles.legendText}>Total Expenses</Text>
+        </View>
       </View>
+
       <BarChart
         data={barData}
-        isGrouped
-        barWidth={10}
+        barWidth={20}
         spacing={30}
-        roundedTop
-        roundedBottom
         hideRules
-        xAxisThickness={0}
-        yAxisThickness={0}
-        yAxisTextStyle={{ color: "gray" }}
-        noOfSections={4}
+        showScrollIndicator
         maxValue={maxBarValue}
+        noOfSections={4}
+
+        yAxisTextStyle={{ color: "gray" }}
+        xAxisThickness={1}
+        yAxisThickness={1}
+        style={styles.chartStyle}
       />
     </View>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    height: 320, // Enough vertical space for bars
+    backgroundColor: "transparent",
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    borderRadius: 10,
+  },
+  legendRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 5,
+  },
+  legendText: {
+    color: "#404040",
+  },
+  chartStyle: {
+    marginTop: 10,
+  },
+});
 export default BarChartComponent;
