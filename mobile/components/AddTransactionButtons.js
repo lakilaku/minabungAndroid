@@ -105,6 +105,10 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
+    if (budgetName.length > 15) {
+      Alert.alert("Error", "Name must be less than 15 characters");
+      return;
+    }
     addBudget({
       variables: {
         groupId,
@@ -114,6 +118,17 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
         icon: budgetIcon,
       },
     });
+  };
+
+  const formatRupiah = (value) => {
+    if (!value) return "Rp.";
+    return (
+      "Rp." + parseFloat(value.replace(/\D/g, "") || 0).toLocaleString("id-ID")
+    );
+  };
+
+  const parseNumber = (formattedValue) => {
+    return formattedValue.replace(/\D/g, "");
   };
 
   return (
@@ -155,8 +170,8 @@ const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
               style={styles.input}
               placeholder="Limit Amount"
               keyboardType="numeric"
-              value={budgetLimit}
-              onChangeText={setBudgetLimit}
+              value={formatRupiah(budgetLimit)}
+              onChangeText={(text) => setBudgetLimit(parseNumber(text))}
             />
 
             <Text style={styles.label}>Choose Color:</Text>
