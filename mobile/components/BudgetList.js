@@ -1,26 +1,44 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { FormatRupiah } from "../utils/NumberFormat";
 
-const BudgetList = ({ budgets, expenses }) => {
-  // Helper to format a number with dot as thousand separator (without currency prefix)
+const BudgetList = ({ budgets, expenses, onBudgetClick, selectedBudgetId }) => {
   const formatNumberWithDot = (num) => {
     if (isNaN(num)) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const renderBudgetItem = ({ item }) => {
-    // Calculate total expenses for this budget
     const totalExpense = expenses
       .filter((expense) => expense.budgetId === item._id)
       .reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-    // Calculate available budget
     const availableBudget = item.limit - totalExpense;
 
     return (
-      <View style={[styles.budgetCard, { backgroundColor: item.color }]}>
+      <TouchableOpacity
+        onPress={() => onBudgetClick(item._id)}
+        style={[
+          styles.budgetCard,
+          {
+            backgroundColor: item.color,
+            borderWidth: selectedBudgetId === item._id ? 3 : 0,
+            borderColor:
+              selectedBudgetId === item._id ? "#FFD700" : "transparent",
+            opacity:
+              selectedBudgetId === null || selectedBudgetId === item._id
+                ? 1
+                : 0.5,
+          },
+        ]}
+      >
         <Icon
           name={item.icon || "help-outline"}
           size={30}
@@ -39,7 +57,7 @@ const BudgetList = ({ budgets, expenses }) => {
           </View>
         </Text>
         <Text style={styles.budgetCardLabel}>{item.name}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
