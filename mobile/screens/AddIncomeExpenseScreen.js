@@ -12,18 +12,33 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { getSecure } from "../utils/SecureStore";
-import { FormatRupiah } from "../utils/NumberFormat";
 
 const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
     getGroupByUserId(userId: $userId) {
       _id
       name
+      description
       budgets {
         _id
         name
+        limit
         color
         icon
+      }
+      members {
+        name
+      }
+      incomes {
+        name
+        amount
+        date
+      }
+      expenses {
+        name
+        amount
+        date
+        budgetId
       }
     }
   }
@@ -93,14 +108,31 @@ const ExpenseIncomeScreen = () => {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    const fetchStoredGroup = async () => {
+      const storedGroup = await getSecure("selectedGroup");
+      if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
+    };
+    fetchStoredGroup();
+  }, []);
+
   const { data, loading, error } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
     skip: !userId,
   });
 
   useEffect(() => {
-    if (data?.getGroupByUserId?.length > 0 && !selectedGroup) {
-      setSelectedGroup(data.getGroupByUserId[0]);
+    if (data?.getGroupByUserId?.length > 0) {
+      if (!selectedGroup) {
+        setSelectedGroup(data.getGroupByUserId[0]);
+      } else {
+        const updatedGroup = data.getGroupByUserId.find(
+          (g) => g._id === selectedGroup._id
+        );
+        if (updatedGroup) {
+          setSelectedGroup(updatedGroup);
+        }
+      }
     }
   }, [data]);
 
@@ -328,19 +360,22 @@ const styles = StyleSheet.create({
   },
   categoryRow: {
     justifyContent: "space-around",
-    marginBottom: 15,
+    marginBottom: 10,
   },
   categoryItem: {
     backgroundColor: "white",
     borderRadius: 10,
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
     alignItems: "center",
-    width: 70,
+    width: 80,
     elevation: 3,
+    justifyContent: "center",
   },
   categoryText: {
     fontSize: 12,
     marginTop: 5,
+    textAlign: "center",
   },
   input: {
     backgroundColor: "white",
