@@ -71,6 +71,7 @@ const BarChartComponent = ({ group }) => {
         showScrollIndicator
         maxValue={maxBarValue}
         noOfSections={4}
+
         yAxisTextStyle={{ color: "gray" }}
         xAxisThickness={1}
         yAxisThickness={1}
@@ -112,5 +113,4 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
 export default BarChartComponent;
