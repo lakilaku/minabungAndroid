@@ -47,6 +47,7 @@ const HomeScreen = () => {
   const [userId, setUserId] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedBudgetId, setSelectedBudgetId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -106,13 +107,35 @@ const HomeScreen = () => {
   );
   const currentBalance = totalIncome - totalExpenses;
 
+  const handleBudgetClick = (budgetId) => {
+    setSelectedBudgetId((prevBudgetId) =>
+      prevBudgetId === budgetId ? null : budgetId
+    );
+  };
+
+  const filteredExpenses = selectedBudgetId
+    ? expenses.filter((expense) => expense.budgetId === selectedBudgetId)
+    : [];
+
+  const filteredIncomes = selectedBudgetId ? incomes : [];
+
+  const filteredTransactions = [...filteredIncomes, ...filteredExpenses];
+
+  filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
   return (
     <View style={styles.container}>
       <View style={styles.incomeContainer}>
         <Text style={styles.incomeTitle}>Current Balance</Text>
         <Text style={styles.incomeAmount}>{FormatRupiah(currentBalance)}</Text>
       </View>
-      <BudgetList budgets={budgets} expenses={expenses} />
+      <BudgetList
+        budgets={budgets}
+        expenses={expenses}
+        onBudgetClick={handleBudgetClick}
+        selectedBudgetId={selectedBudgetId}
+      />
+
       <AddTransactionButtons
         navigation={navigation}
         groupId={selectedGroup?._id}
@@ -125,7 +148,11 @@ const HomeScreen = () => {
         <Text style={styles.groupTitle}>Group</Text>
         <Text style={styles.groupName}>{selectedGroup?.name}</Text>
       </TouchableOpacity>
-      <TransactionList groupId={selectedGroup?._id} />
+      <TransactionList
+        groupId={selectedGroup?._id}
+        selectedBudgetId={selectedBudgetId}
+        budgets={budgets}
+      />
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>

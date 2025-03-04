@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Modal,
   TextInput,
-  Button,
   TouchableOpacity,
   Alert,
 } from "react-native";
@@ -22,6 +21,7 @@ const GET_THIS_MONTH_INCOME_EXPENSES = gql`
       amount
       date
       type
+      budgetId
     }
   }
 `;
@@ -79,7 +79,7 @@ const DELETE_EXPENSE = gql`
   }
 `;
 
-const TransactionList = ({ groupId }) => {
+const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
   const { data, loading, error, refetch } = useQuery(
     GET_THIS_MONTH_INCOME_EXPENSES,
     {
@@ -109,7 +109,14 @@ const TransactionList = ({ groupId }) => {
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>Error: {error.message}</Text>;
 
-  const allTransaction = data?.getThisMonthIncomesandExpenses || [];
+  let allTransaction = data?.getThisMonthIncomesandExpenses || [];
+
+  // Filter transactions by selected budget
+  if (selectedBudgetId) {
+    allTransaction = allTransaction.filter(
+      (item) => item.budgetId === selectedBudgetId
+    );
+  }
 
   const openModal = (transaction) => {
     setSelectedTransaction(transaction);
@@ -137,7 +144,7 @@ const TransactionList = ({ groupId }) => {
             updateExpenseId: selectedTransaction._id,
             name,
             amount: parseFloat(amount),
-            budgetId: groupId,
+            budgetId: selectedTransaction.budgetId || groupId,
           },
         });
       }
@@ -173,7 +180,7 @@ const TransactionList = ({ groupId }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.expenseContainer}>
-        <Text style={styles.expenseTitle}>All Transactions</Text>
+        <Text style={styles.expenseTitle}>Transactions</Text>
         {allTransaction.length === 0 ? (
           <Text style={styles.noDataText}>No transactions available</Text>
         ) : (
@@ -214,7 +221,6 @@ const TransactionList = ({ groupId }) => {
               keyboardType="numeric"
             />
 
-            {/* Button Container */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.updateButton]}
