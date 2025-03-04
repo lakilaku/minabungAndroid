@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 200,
-    backgroundColor: "#F5C400",
+    backgroundColor: "#FFC067",
     position: "relative",
   },
   cover: {
