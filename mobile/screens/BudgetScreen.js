@@ -9,7 +9,6 @@ const BudgetScreen = () => {
   const [group, setGroup] = useState(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
-  console.log(group);
   useEffect(() => {
     const fetchGroup = async () => {
       const storedGroup = await getSecure("selectedGroup");

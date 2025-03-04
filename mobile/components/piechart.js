@@ -4,7 +4,6 @@ import { PieChart } from "react-native-gifted-charts";
 
 const PieChartComponent = ({ group }) => {
   const backgroundColor = "#F9D976";
-  console.log(group);
   const pieData =
     group?.budgets?.map((budget) => ({
       value: Number(budget.limit),
