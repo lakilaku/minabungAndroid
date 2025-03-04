@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import TransactionList from "../components/TransactionList";
 import BudgetList from "../components/BudgetList";
-import { getSecure, saveSecure } from "../utils/SecureStore";
+import { deleteSecure, getSecure, saveSecure } from "../utils/SecureStore";
 import { gql, useQuery } from "@apollo/client";
 import { FormatRupiah } from "../utils/NumberFormat";
 import AddTransactionButtons from "../components/AddTransactionButtons";
@@ -21,16 +21,12 @@ const GET_GROUP_BY_USER_ID = gql`
     getGroupByUserId(userId: $userId) {
       _id
       name
-      description
       budgets {
         _id
         name
         limit
         color
         icon
-      }
-      members {
-        name
       }
       incomes {
         name
@@ -98,18 +94,25 @@ const HomeScreen = () => {
 
   const budgets = selectedGroup?.budgets || [];
   const incomes = selectedGroup?.incomes || [];
+  const expenses = selectedGroup?.expenses || [];
+
   const totalIncome = incomes.reduce(
     (acc, income) => acc + (income.amount || 0),
     0
   );
+  const totalExpenses = expenses.reduce(
+    (acc, expense) => acc + (expense.amount || 0),
+    0
+  );
+  const currentBalance = totalIncome - totalExpenses;
 
   return (
     <View style={styles.container}>
       <View style={styles.incomeContainer}>
-        <Text style={styles.incomeTitle}>Income</Text>
-        <Text style={styles.incomeAmount}>{FormatRupiah(totalIncome)}</Text>
+        <Text style={styles.incomeTitle}>Current Balance</Text>
+        <Text style={styles.incomeAmount}>{FormatRupiah(currentBalance)}</Text>
       </View>
-      <BudgetList targetData={budgets} />
+      <BudgetList budgets={budgets} expenses={expenses} />
       <AddTransactionButtons
         navigation={navigation}
         groupId={selectedGroup?._id}
@@ -131,6 +134,7 @@ const HomeScreen = () => {
               <TouchableOpacity
                 key={group._id}
                 onPress={() => {
+                  deleteSecure("selectedGroup");
                   setSelectedGroup(group);
                   saveSecure("selectedGroup", JSON.stringify(group));
                   setModalVisible(false);
