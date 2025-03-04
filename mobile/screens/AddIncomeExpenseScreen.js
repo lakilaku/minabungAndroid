@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,68 +11,19 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation, useQuery } from "@apollo/client";
+import { getSecure } from "../utils/SecureStore";
+import { FormatRupiah } from "../utils/NumberFormat";
 
-const dummyData = {
-  getGroupById: {
-    budgets: [
-      { _id: "1", name: "Food", icon: "restaurant", color: "#FF5733" },
-      { _id: "2", name: "Transport", icon: "directions-bus", color: "#3498DB" },
-      { _id: "3", name: "Shopping", icon: "shopping-cart", color: "#F1C40F" },
-      { _id: "4", name: "Health", icon: "local-hospital", color: "#2ECC71" },
-      { _id: "5", name: "Entertainment", icon: "movie", color: "#9B59B6" },
-      { _id: "6", name: "Education", icon: "school", color: "#E67E22" },
-      { _id: "7", name: "Bills", icon: "receipt", color: "#1ABC9C" },
-      { _id: "8", name: "Savings", icon: "savings", color: "#E74C3C" },
-    ],
-  },
-};
-
-const GET_GROUP_BY_ID = gql`
-  query Query($getGroupByIdId: ID!) {
-    getGroupById(id: $getGroupByIdId) {
+const GET_GROUP_BY_USER_ID = gql`
+  query GetGroupByUserId($userId: ID!) {
+    getGroupByUserId(userId: $userId) {
       _id
       name
-      description
-      members {
-        _id
-        name
-        role
-      }
-      incomes {
-        _id
-        name
-        note
-        amount
-        date
-      }
-      expenses {
-        _id
-        name
-        note
-        amount
-        date
-        budgetId
-      }
       budgets {
         _id
         name
-        limit
-        icon
         color
-      }
-      invite
-    }
-  }
-`;
-
-const GET_CATEGORIES = gql`
-  query Query($getGroupByIdId: ID!) {
-    getGroupById(id: $getGroupByIdId) {
-      budgets {
-        _id
-        name
         icon
-        color
       }
     }
   }
@@ -96,8 +47,6 @@ const CREATE_POST_EXPENSE = gql`
       name
       amount
       note
-      date
-      budgetId
     }
   }
 `;
@@ -112,9 +61,8 @@ const CREATE_POST_INCOME = gql`
     addIncome(amount: $amount, note: $note, name: $name, groupId: $groupId) {
       _id
       name
-      note
       amount
-      date
+      note
     }
   }
 `;
@@ -122,65 +70,125 @@ const CREATE_POST_INCOME = gql`
 const ExpenseIncomeScreen = () => {
   const [selectedType, setSelectedType] = useState("Expense");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
-  const groupId = "yourGroupId";
+  const [name, setName] = useState("");
 
-  const { data, loading, error } = useQuery(GET_CATEGORIES, {
-    variables: { getGroupByIdId: groupId },
-    skip: true,
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getSecure("userData");
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          if (parsedUser._id) {
+            setUserId(parsedUser._id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  const { data, loading, error } = useQuery(GET_GROUP_BY_USER_ID, {
+    variables: { userId },
+    skip: !userId,
   });
+
+  useEffect(() => {
+    if (data?.getGroupByUserId?.length > 0 && !selectedGroup) {
+      setSelectedGroup(data.getGroupByUserId[0]);
+    }
+  }, [data]);
+
   const [addExpense] = useMutation(CREATE_POST_EXPENSE, {
     onCompleted: () => Alert.alert("Success", "Expense added successfully"),
     onError: (err) => Alert.alert("Error", err.message),
   });
+
   const [addIncome] = useMutation(CREATE_POST_INCOME, {
     onCompleted: () => Alert.alert("Success", "Income added successfully"),
     onError: (err) => Alert.alert("Error", err.message),
   });
-
-  const handleAddTransaction = async () => {
-    if (!selectedCategory || !amount) {
-      Alert.alert("Error", "Please select a category and enter an amount");
-      return;
-    }
-
-    try {
-      const variables = {
-        name,
-        amount: parseFloat(amount),
-        groupId,
-        note: note || "",
-        budgetId: selectedCategory?._id,
-      };
-
-      if (selectedType === "Expense") {
-        await addExpense({ variables });
-      } else {
-        await addIncome({ variables });
-      }
-    } catch (err) {
-      console.error("Transaction error:", err);
-    }
-  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   if (error) {
-    return <Text>Error loading categories...</Text>;
+    return <Text>Error loading data: {error.message}</Text>;
   }
 
-  const categories =
-    data?.getGroupById?.budgets || dummyData.getGroupById.budgets;
+  const categories = selectedGroup?.budgets || [];
+
+  const handleAddTransaction = async () => {
+    if (!selectedGroup) {
+      Alert.alert("Error", "No group selected");
+      return;
+    }
+
+    if (selectedType === "Expense") {
+      if (!selectedCategory || !amount) {
+        Alert.alert("Error", "Please select a category and enter an amount");
+        return;
+      }
+      const postExpense = await addExpense({
+        variables: {
+          name,
+          amount: parseFloat(amount),
+          groupId: selectedGroup?._id,
+          note,
+          budgetId: selectedCategory?._id,
+        },
+      });
+      if (!postExpense) {
+        Alert.alert("Error", "Failed to add expense");
+        return;
+      }
+    } else {
+      if (!amount) {
+        Alert.alert("Error", "Please enter an amount");
+        return;
+      }
+      const postIncome = await addIncome({
+        variables: {
+          name,
+          amount: parseFloat(amount),
+          groupId: selectedGroup?._id,
+          note,
+        },
+      });
+      if (!postIncome) {
+        Alert.alert("Error", "Failed to add income");
+        return;
+      }
+    }
+    setAmount("");
+    setName("");
+    setNote("");
+    setSelectedCategory(null);
+  };
+
+  const formatRupiah = (value) => {
+    if (!value) return "Rp.";
+    return (
+      "Rp." + parseFloat(value.replace(/\D/g, "") || 0).toLocaleString("id-ID")
+    );
+  };
+
+  const parseNumber = (formattedValue) => {
+    return formattedValue.replace(/\D/g, "");
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Add Transactions</Text>
       </View>
-      {/* Expense / Income Toggle */}
+
       <View style={styles.toggleContainer}>
         <TouchableOpacity
           style={[
@@ -197,11 +205,7 @@ const ExpenseIncomeScreen = () => {
           >
             Expense
           </Text>
-          <Icon
-            name="trending-down"
-            size={16}
-            color={selectedType === "Expense" ? "red" : "black"}
-          />
+          <Icon name="trending-down" size={16} color="red" />
         </TouchableOpacity>
 
         <Text style={styles.separator}>|</Text>
@@ -221,15 +225,10 @@ const ExpenseIncomeScreen = () => {
           >
             Income
           </Text>
-          <Icon
-            name="trending-up"
-            size={16}
-            color={selectedType === "Income" ? "green" : "black"}
-          />
+          <Icon name="trending-up" size={16} color="green" />
         </TouchableOpacity>
       </View>
 
-      {/* Grid of Categories */}
       {selectedType === "Expense" && (
         <FlatList
           data={categories}
@@ -251,37 +250,29 @@ const ExpenseIncomeScreen = () => {
         />
       )}
 
-      {/* Input Fields */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Amount"
-          keyboardType="numeric"
-          value={amount}
-          onChangeText={setAmount}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Description"
-          multiline
-          value={note}
-          onChangeText={setNote}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Description"
-          multiline
-          value={note}
-          onChangeText={setNote}
-        />
-        {/* Add Button */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddTransaction}
-        >
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Amount"
+        keyboardType="numeric"
+        value={formatRupiah(amount)}
+        onChangeText={(text) => setAmount(parseNumber(text))}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Description"
+        value={note}
+        onChangeText={setNote}
+      />
+
+      <TouchableOpacity style={styles.addButton} onPress={handleAddTransaction}>
+        <Text style={styles.addButtonText}>Add</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -356,9 +347,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
-  },
-  inputContainer: {
-    flex: 1,
   },
   addButton: {
     backgroundColor: "#3B82F6",
