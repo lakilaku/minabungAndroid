@@ -3,6 +3,27 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
+//query GetIncomesByMonth($groupId: ID!, $month: Int!, $year: Int!) {
+//   getIncomesByMonth(groupId: $groupId, month: $month, year: $year) {
+//     _id
+//     name
+//     note
+//     amount
+//     date
+//   }
+// }
+
+// query GetIncomesByMonth($groupId: ID!, $month: Int!, $year: Int!) {
+//   getExpensesByMonth(groupId: $groupId, month: $month, year: $year) {
+//     _id
+//     name
+//     note
+//     amount
+//     date
+//     budgetId
+//   }
+// }
+
 const BottomSheetComponent = ({ bottomSheetRef, snapPoints }) => {
   const [selectedTab, setSelectedTab] = useState("Expense");
 

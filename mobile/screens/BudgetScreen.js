@@ -4,22 +4,49 @@ import BottomSheetComponent from "../components/bottomsheet";
 import BarChartComponent from "../components/barchart";
 import PieChartComponent from "../components/piechart";
 
+// const GET_ALL_TRANSACTIONS = gql``
+
+// const GET_THIS_MONTH_EXPENSES = gql`
+//   query GetThisMonthExpenses($groupId: ID!) {
+//     getThisMonthExpenses(groupId: $groupId) {
+//       _id
+//       name
+//       note
+//       amount
+//       date
+//       budgetId
+//     }
+//   }
+// `;
+
+// const GET_THIS_MONTH_INCOMES = gql`
+//   query GetThisMonthIncomes($groupId: ID!) {
+//     getThisMonthIncomes(groupId: $groupId) {
+//       _id
+//       name
+//       note
+//       amount
+//       date
+//     }
+//   }
+// `;
+
 const BudgetScreen = () => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#F9D976" }}>
       <View style={styles.topContainer}>
         <Text style={styles.title}>Aqbils Family</Text>
         <Text style={styles.subTitle}>This month</Text>
       </View>
 
-      {/* Bar Chart */}
-      <BarChartComponent />
-
       {/* Pie Chart */}
       <PieChartComponent />
+
+      {/* Bar Chart */}
+      <BarChartComponent />
 
       {/* Bottom Sheet */}
       <BottomSheetComponent
@@ -39,11 +66,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   subTitle: {
     fontSize: 18,
-    color: "#7F8C8D",
+    color: "#404040",
   },
 });
 
