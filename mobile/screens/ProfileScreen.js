@@ -15,6 +15,7 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import { lookup } from "react-native-mime-types";
+import { ReactNativeFile } from "apollo-upload-client";
 
 const UPDATEPROFILE = gql`
   mutation UpdateProfile(
@@ -103,7 +104,7 @@ const ProfileScreen = () => {
 
   const userId = user?._id;
 
-  const { data: userData, loading: userLoading, error: userError } = useQuery(GET_GROUP_BY_USER_ID, {
+  const { data: userData } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
     skip: !userId,
   });
@@ -156,15 +157,18 @@ const ProfileScreen = () => {
       const uri = result.assets[0].uri;
       const fileType = lookup(uri) || "image/jpeg";
       const fileName = uri.split("/").pop();
+      
+      // Mengonversi menjadi ReactNativeFile
+      const file = new ReactNativeFile({
+        uri,
+        type: fileType,
+        name: fileName,
+      });
   
       try {
         const { data } = await updateProfilePicture({
           variables: {
-            profilePicture: {
-              uri,
-              type: fileType,
-              name: fileName,
-            },
+            profilePicture: file, // Kirim file yang benar
           },
           context: { headers: { authorization: `Bearer ${token}` } },
         });
@@ -201,7 +205,7 @@ const ProfileScreen = () => {
       >
         <Icon name="edit" size={24} color="#fff" />
       </TouchableOpacity>
-      <Text style={styles.edit}>Edit Profile</Text>
+      {/* <Text style={styles.edit}>Edit Profile</Text> */}
       <TouchableOpacity style={styles.logoutButton} onPress={async () => {
           await deleteSecure("accessToken");
           setIsSignedIn(false);
@@ -237,12 +241,12 @@ const ProfileScreen = () => {
         <TouchableOpacity style={styles.optionButton}>
           <Text style={styles.optionText}>General Settings</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={styles.optionButton}
           onPress={() => setModalVisible(true)}
         >
           <Text style={styles.optionText}>Edit Profile</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         {/* <TouchableOpacity
           style={[styles.optionButton, { backgroundColor: "#f52d56" }]}
           onPress={async () => {
