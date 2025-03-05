@@ -19,21 +19,20 @@ const BarChartComponent = ({ group }) => {
     barData.push({
       value: budget.limit,
       label: budget.name,
-      spacing: 2,
+      spacing: 5,
       labelWidth: 60,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
+      labelTextStyle: { color: "#4d4c4c" },
+      frontColor: "#1253c4",
     });
 
     // Second bar: total expense (no label so it shows right after the first)
     barData.push({
       value: totalExpense,
-      frontColor: "#ED6665",
+      frontColor: "#d13f3f",
     });
   });
 
   if (barData.length === 0) {
-    // Provide a fallback if there are no budgets
     barData.push({
       value: 0,
       label: "No Budgets",
@@ -44,7 +43,7 @@ const BarChartComponent = ({ group }) => {
     });
     barData.push({
       value: 0,
-      frontColor: "#ED6665",
+      frontColor: "#cf2d2d",
     });
   }
 
@@ -68,10 +67,9 @@ const BarChartComponent = ({ group }) => {
         barWidth={20}
         spacing={30}
         hideRules
-        showScrollIndicator
+        // showScrollIndicator
         maxValue={maxBarValue}
         noOfSections={4}
-
         yAxisTextStyle={{ color: "gray" }}
         xAxisThickness={1}
         yAxisThickness={1}
@@ -83,12 +81,15 @@ const BarChartComponent = ({ group }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: "91%",
     height: 320, // Enough vertical space for bars
-    backgroundColor: "transparent",
+    backgroundColor: "#fcf4d4",
+    alignSelf: "center",
+    justifyContent: "center",
     paddingHorizontal: 10,
-    paddingTop: 10,
     borderRadius: 10,
+    marginHorizontal: 10,
+    overflow: "hidden",
   },
   legendRow: {
     flexDirection: "row",
@@ -109,8 +110,6 @@ const styles = StyleSheet.create({
   legendText: {
     color: "#404040",
   },
-  chartStyle: {
-    marginTop: 10,
-  },
+  chartStyle: {},
 });
 export default BarChartComponent;

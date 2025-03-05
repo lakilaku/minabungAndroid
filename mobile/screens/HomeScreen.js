@@ -21,6 +21,7 @@ const GET_GROUP_BY_USER_ID = gql`
     getGroupByUserId(userId: $userId) {
       _id
       name
+      invite
       budgets {
         _id
         name
@@ -135,7 +136,6 @@ const HomeScreen = () => {
         onBudgetClick={handleBudgetClick}
         selectedBudgetId={selectedBudgetId}
       />
-
       <AddTransactionButtons
         navigation={navigation}
         groupId={selectedGroup?._id}
@@ -168,6 +168,9 @@ const HomeScreen = () => {
                 }}
               >
                 <Text style={styles.modalGroupName}>{group.name}</Text>
+                <Text style={styles.modalGroupDescription}>
+                  Invite Code: {group.invite}
+                </Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
@@ -195,7 +198,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFC067",
+    backgroundColor: "#F8DE7E",
     paddingTop: 20,
     paddingHorizontal: 10,
   },
@@ -204,24 +207,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   incomeTitle: {
-    fontSize: 18,
+    fontSize: 15,
     color: "#333",
   },
   incomeAmount: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
+    color: "#000000",
   },
   groupContainer: {
     backgroundColor: "#102A71",
     borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "black",
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 10,
     flexDirection: "row",
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOpacity: 2,
+    shadowRadius: 2,
+    elevation: 10,
   },
   groupTitle: {
     fontSize: 18,
@@ -260,7 +265,12 @@ const styles = StyleSheet.create({
   modalGroupName: {
     fontSize: 18,
     color: "#555",
-    paddingVertical: 10,
+    paddingTop: 10,
+  },
+  modalGroupDescription: {
+    fontSize: 14,
+    color: "#777",
+    paddingVertical: 5,
     borderBottomWidth: 1,
     borderColor: "#eaeaea",
   },
