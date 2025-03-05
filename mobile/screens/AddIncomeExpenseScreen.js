@@ -13,6 +13,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { getSecure } from "../utils/SecureStore";
 import { GET_THIS_MONTH_INCOME_EXPENSES } from "../components/TransactionList";
+import { useFocusEffect } from "@react-navigation/native";
 
 const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
@@ -109,13 +110,15 @@ const ExpenseIncomeScreen = () => {
     fetchUserData();
   }, []);
 
-  useEffect(() => {
-    const fetchStoredGroup = async () => {
-      const storedGroup = await getSecure("selectedGroup");
-      if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
-    };
-    fetchStoredGroup();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchGroup = async () => {
+        const storedGroup = await getSecure("selectedGroup");
+        if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
+      };
+      fetchGroup();
+    }, [])
+  );
 
   const { data, loading, error } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },

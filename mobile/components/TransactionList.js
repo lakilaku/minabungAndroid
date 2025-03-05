@@ -107,15 +107,15 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
   const [amount, setAmount] = useState("");
 
   if (loading) return <Text>Loading...</Text>;
-  if (error) return <Text>Error: {error.message}</Text>;
+  // if (error) return <Text>Error: {error.message}</Text>;
 
   let allTransaction = data?.getThisMonthIncomesandExpenses || [];
 
   // Filter transactions by selected budget
   if (selectedBudgetId) {
-    allTransaction = allTransaction.filter(
-      (item) => item.budgetId === selectedBudgetId
-    );
+    allTransaction =
+      allTransaction?.filter((item) => item.budgetId === selectedBudgetId) ||
+      [];
   }
 
   const openModal = (transaction) => {
