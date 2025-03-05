@@ -89,7 +89,7 @@ const HomeScreen = () => {
       const defaultGroup = groupList[selectedIndex];
       setSelectedGroup(defaultGroup);
       // console.log(selectedIndex, "Selected Index Inside");
-      console.log(defaultGroup.name);
+      // console.log(defaultGroup.name);
       saveSecure("selectedGroup", JSON.stringify(defaultGroup));
     }
   }, [groupList, selectedGroup, data]);

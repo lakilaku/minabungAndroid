@@ -177,10 +177,18 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
     }
   };
 
+  const currentMonth = new Date().getMonth() + 1;
+  const monthName = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+  }).format(currentMonth);
+  const currentYear = new Date().getFullYear();
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.expenseContainer}>
-        <Text style={styles.expenseTitle}>Transactions</Text>
+        <Text style={styles.expenseTitle}>
+          {monthName} {currentYear} Transactions
+        </Text>
         {allTransaction.length === 0 ? (
           <Text style={styles.noDataText}>No transactions available</Text>
         ) : (

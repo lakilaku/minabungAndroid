@@ -4,13 +4,37 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 const AddGroup = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Minabung!</Text>
+      <Text style={styles.title}>Get Started</Text>
+      <Text style={styles.subtitle}>
+        Would you like to create or join a group?
+      </Text>
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("CreateGroup")}>
-          <Text style={styles.buttonText}>Create Group</Text>
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton]}
+          onPress={() => navigation.navigate("CreateGroup")}
+        >
+          <Text style={[styles.buttonText, styles.primaryText]}>
+            Create Group
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("JoinGroup")}>
-          <Text style={styles.buttonText}>Join Group</Text>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => navigation.navigate("CreateGroupAi")}
+        >
+          <Text style={[styles.buttonText, styles.secondaryText]}>
+            Need Help?
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.tertiaryButton]}
+          onPress={() => navigation.navigate("JoinGroup")}
+        >
+          <Text style={[styles.buttonText, styles.tertiaryText]}>
+            Join Group
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -20,34 +44,61 @@ const AddGroup = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5C400",
+    backgroundColor: "#FFC067",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: "bold",
-    color: "#000",
-    marginBottom: 20,
+    color: "#333",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 24,
+    textAlign: "center",
   },
   buttonContainer: {
-    flexDirection: "row",
-    gap: 10,
+    width: "100%",
+    alignItems: "center",
+    backgroundColor: "#FFC067",
   },
   button: {
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    width: "90%",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    elevation: 4,
+  },
+  primaryButton: {
+    backgroundColor: "#007AFF",
+    shadowColor: "#007AFF",
+  },
+  secondaryButton: {
+    backgroundColor: "#34C759",
+    shadowColor: "#34C759",
+  },
+  tertiaryButton: {
+    backgroundColor: "#FF9500",
+    shadowColor: "#FF9500",
   },
   buttonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  primaryText: {
+    color: "#FFF",
+  },
+  secondaryText: {
+    color: "#FFF",
+  },
+  tertiaryText: {
+    color: "#FFF",
   },
 });
 

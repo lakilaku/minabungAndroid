@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { useMutation, gql } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 
@@ -15,7 +22,7 @@ const JOIN_GROUP = gql`
 const JoinGroupScreen = () => {
   const [groupCode, setGroupCode] = useState("");
   const navigation = useNavigation();
-  
+
   const [joinGroup, { loading, error }] = useMutation(JOIN_GROUP);
 
   const handleJoinGroup = async () => {
@@ -23,7 +30,9 @@ const JoinGroupScreen = () => {
       const { data } = await joinGroup({
         variables: { invite: groupCode },
       });
-      Alert.alert("Success", "Successfully joined the group!", [{ text: "OK", onPress: () => navigation.goBack() }]);
+      Alert.alert("Success", "Successfully joined the group!", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
       setGroupCode("");
     } catch (err) {
       Alert.alert("Error joining group:", err);
@@ -45,8 +54,14 @@ const JoinGroupScreen = () => {
 
       {error && <Text style={styles.errorText}>Error: {error.message}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleJoinGroup} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Joining..." : "Join Group"}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleJoinGroup}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Joining..." : "Join Group"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -55,7 +70,7 @@ const JoinGroupScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5C400",
+    backgroundColor: "#FFC067",
     justifyContent: "center",
     paddingHorizontal: 20,
   },
