@@ -16,7 +16,7 @@ import AddTransactionButtons from "../components/AddTransactionButtons";
 import AddGroup from "../components/AddGroup";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
-const GET_GROUP_BY_USER_ID = gql`
+export const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
     getGroupByUserId(userId: $userId) {
       _id
