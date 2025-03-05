@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,10 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation } from "@apollo/client";
+import { GET_GROUP_BY_USER_ID } from "../screens/HomeScreen";
+import { GET_THIS_MONTH_INCOME_EXPENSES } from "./TransactionList";
+import { useFocusEffect } from "@react-navigation/native";
+import { getSecure } from "../utils/SecureStore";
 
 const ADD_BUDGET = gql`
   mutation AddBudget(
@@ -78,26 +82,64 @@ const ICON_OPTIONS = [
   "local-bar",
 ];
 
-const AddTransactionButtons = ({ groupId, navigation, refetch }) => {
+const AddTransactionButtons = ({
+  groupId,
+  navigation,
+  refetch,
+  setSelectedGroup,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [budgetName, setBudgetName] = useState("");
   const [budgetLimit, setBudgetLimit] = useState("");
   const [budgetColor, setBudgetColor] = useState("#3498db");
-  const [budgetIcon, setBudgetIcon] = useState("attach_money");
+  const [budgetIcon, setBudgetIcon] = useState("attach-money");
+  const [userId, setUserId] = useState(null);
+
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     const user = await getSecure("userData");
+  //     console.log(user, "User Data");
+  //     if (user) {
+  //       const parsedUser = JSON.parse(user);
+  //       if (parsedUser._id) setUserId(parsedUser._id);
+  //     }
+  //   };
+  //   fetchUserData();
+  // }, [groupId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUserData = async () => {
+        const user = await getSecure("userData");
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          if (parsedUser._id) setUserId(parsedUser._id);
+        }
+      };
+      fetchUserData();
+    }, [])
+  );
 
   const [addBudget, { loading, error }] = useMutation(ADD_BUDGET, {
-    onCompleted: () => {
-      refetch();
+    onCompleted: async () => {
+      await refetch();
       Alert.alert("Success", "Budget added successfully!");
       setModalVisible(false);
       setBudgetName("");
       setBudgetLimit("");
       setBudgetColor("#3498db");
-      setBudgetIcon("attach_money");
+      setBudgetIcon("currency-exchange");
+      setSelectedGroup(null);
     },
     onError: (err) => {
       Alert.alert("Error", err.message);
     },
+    refetchQueries: [
+      {
+        query: GET_GROUP_BY_USER_ID,
+        variables: { userId },
+      },
+    ],
   });
 
   const handleAddBudget = () => {

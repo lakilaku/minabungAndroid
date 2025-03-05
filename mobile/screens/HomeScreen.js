@@ -92,6 +92,7 @@ const HomeScreen = () => {
       // console.log(selectedIndex, "Selected Index Inside");
       // console.log(defaultGroup.name);
       saveSecure("selectedGroup", JSON.stringify(defaultGroup));
+      console.log("Masuk", defaultGroup.budgets);
     }
   }, [groupList, selectedGroup, data]);
 
@@ -140,11 +141,15 @@ const HomeScreen = () => {
         expenses={expenses}
         onBudgetClick={handleBudgetClick}
         selectedBudgetId={selectedBudgetId}
+        setSelectedBudgetId={setSelectedBudgetId}
+        refetch={refetch}
+        setSelectedGroup={setSelectedGroup}
       />
       <AddTransactionButtons
         navigation={navigation}
         groupId={selectedGroup?._id}
         refetch={refetch}
+        setSelectedGroup={setSelectedGroup}
       />
       <TouchableOpacity
         style={styles.groupContainer}
