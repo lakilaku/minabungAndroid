@@ -16,6 +16,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import { lookup } from "react-native-mime-types";
 import { ReactNativeFile } from "apollo-upload-client";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const UPDATEPROFILE = gql`
   mutation UpdateProfile(
@@ -36,6 +37,7 @@ const UPDATEPROFILE = gql`
       email
       birthDate
       groupId
+      profilePicture
     }
   }
 `;
@@ -64,6 +66,8 @@ const ProfileScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisiblePicture, setModalVisiblePicture] = useState(false);
   const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   // console.log(user);
   
   const [updates, setUpdates] = useState({
@@ -87,6 +91,7 @@ const ProfileScreen = () => {
             username: parsedUser.username || "",
             email: parsedUser.email || "",
             birthDate: parsedUser.birthDate || "",
+            profilePicture: parsedUser.profilePicture || "",
           });
         }
       }
@@ -186,6 +191,15 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDate(selectedDate);
+      setUpdates({ ...updates, birthDate: selectedDate.toISOString().split("T")[0] }); // Format YYYY-MM-DD
+    }
+  };
+  // console.log(user);
+  
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -290,14 +304,21 @@ const ProfileScreen = () => {
               value={updates.email}
               onChangeText={(text) => setUpdates({ ...updates, email: text })}
             />
-            <TextInput
+            <TouchableOpacity
               style={styles.input}
-              placeholder={user?.birthDate || "Birth Date"}
-              value={updates.birthDate}
-              onChangeText={(text) =>
-                setUpdates({ ...updates, birthDate: text })
-              }
-            />
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text>{updates.birthDate || "Select Birth Date"}</Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={updates.birthDate ? new Date(updates.birthDate) : new Date()}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+              />
+            )}
             {/* Profile Picture Upload later */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
