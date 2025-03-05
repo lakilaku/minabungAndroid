@@ -50,7 +50,12 @@ const BottomSheetComponent = ({ bottomSheetRef, snapPoints, group }) => {
   );
 
   return (
-    <BottomSheet ref={bottomSheetRef} index={0} snapPoints={snapPoints}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      backgroundStyle={{ backgroundColor: "#F8DE7E" }}
+    >
       <View style={styles.bottomSheetContent}>
         <View style={styles.tabContainer}>
           <TabButton
@@ -104,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     padding: 10,
-    backgroundColor: "#F9D976",
+    backgroundColor: "#FFF0C2",
     borderRadius: 10,
     marginBottom: 10,
   },

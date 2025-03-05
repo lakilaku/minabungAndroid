@@ -39,7 +39,7 @@ const COLOR_OPTIONS = [
   "#3498db",
   "#e74222",
   "#2ecc71",
-  "#f5c400",
+  "#ff4d91",
   "#9b59b6",
   "#34495e",
 ];
@@ -250,9 +250,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 2,
+    shadowRadius: 2,
+    elevation: 10,
   },
   addIncomeButton: {
     marginRight: 8,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 15,
   },
@@ -341,6 +341,7 @@ const styles = StyleSheet.create({
   iconOption: {
     padding: 10,
     marginHorizontal: 5,
+    marginBottom: 10,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",

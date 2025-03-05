@@ -326,7 +326,7 @@ const ExpenseIncomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9D976",
+    backgroundColor: "#F8DE7E",
     padding: 20,
   },
   header: {

@@ -99,6 +99,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 2,
+    shadowRadius: 2,
+    elevation: 6,
   },
   icon: {
     width: 30,

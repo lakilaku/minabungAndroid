@@ -9,7 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 const BudgetScreen = () => {
   const [group, setGroup] = useState(null);
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["10%", "70%"], []);
+  const snapPoints = useMemo(() => ["14%"], []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -30,7 +30,7 @@ const BudgetScreen = () => {
         <Text style={styles.subTitle}>This month</Text>
       </View>
       <PieChartComponent group={group} />
-      <View style={{ height: 50 }} />
+      <View style={{ height: 25 }} />
       <BarChartComponent group={group} />
       <BottomSheetComponent
         bottomSheetRef={bottomSheetRef}
@@ -44,7 +44,7 @@ const BudgetScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9D976",
+    backgroundColor: "#F8DE7E",
   },
   topContainer: {
     justifyContent: "center",
