@@ -67,7 +67,7 @@ const HomeScreen = () => {
       if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
     };
     fetchStoredGroup();
-  }, []);
+  }, [data]);
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
@@ -77,6 +77,14 @@ const HomeScreen = () => {
   useFocusEffect(
     React.useCallback(() => {
       refetch();
+      // if (groupList.length > 0 && !selectedGroup) {
+      //   const defaultGroup = groupList[0];
+      //   setSelectedGroup(defaultGroup);
+      //   saveSecure("selectedGroup", JSON.stringify(defaultGroup));
+      //   console.log("masuk pak eko");
+      // }
+      setSelectedGroup(null);
+      console.log("diluar pak eko");
     }, [refetch])
   );
 
@@ -87,7 +95,7 @@ const HomeScreen = () => {
       setSelectedGroup(defaultGroup);
       saveSecure("selectedGroup", JSON.stringify(defaultGroup));
     }
-  }, [groupList, selectedGroup]);
+  }, [groupList, selectedGroup, data]);
 
   if (!userId || loading)
     return <ActivityIndicator size="large" color="#0000ff" />;

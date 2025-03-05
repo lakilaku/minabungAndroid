@@ -13,7 +13,7 @@ import { FormatRupiah } from "../utils/NumberFormat";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useState } from "react";
 
-const GET_THIS_MONTH_INCOME_EXPENSES = gql`
+export const GET_THIS_MONTH_INCOME_EXPENSES = gql`
   query GetThisMonthIncomesandExpenses($groupId: ID!) {
     getThisMonthIncomesandExpenses(groupId: $groupId) {
       _id

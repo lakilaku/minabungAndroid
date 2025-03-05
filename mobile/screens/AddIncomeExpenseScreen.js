@@ -12,6 +12,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { getSecure } from "../utils/SecureStore";
+import { GET_THIS_MONTH_INCOME_EXPENSES } from "../components/TransactionList";
 
 const GET_GROUP_BY_USER_ID = gql`
   query GetGroupByUserId($userId: ID!) {
@@ -139,6 +140,16 @@ const ExpenseIncomeScreen = () => {
   const [addExpense] = useMutation(CREATE_POST_EXPENSE, {
     onCompleted: () => Alert.alert("Success", "Expense added successfully"),
     onError: (err) => Alert.alert("Error", err.message),
+    refetchQueries: [
+      {
+        query: GET_GROUP_BY_USER_ID,
+        variables: { userId },
+      },
+      {
+        query: GET_THIS_MONTH_INCOME_EXPENSES,
+        variables: { groupId: selectedGroup?._id },
+      },
+    ],
   });
 
   const [addIncome] = useMutation(CREATE_POST_INCOME, {
@@ -265,7 +276,7 @@ const ExpenseIncomeScreen = () => {
         <FlatList
           data={categories}
           keyExtractor={(item) => item._id}
-          numColumns={4}
+          numColumns={3}
           columnWrapperStyle={styles.categoryRow}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -359,7 +370,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#cfe1ff",
   },
   categoryRow: {
-    justifyContent: "space-around",
+    justifyContent: "center",
+    gap: 10,
     marginBottom: 10,
   },
   categoryItem: {
@@ -368,7 +380,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 10,
     alignItems: "center",
-    width: 80,
+    width: 100,
     elevation: 3,
     justifyContent: "center",
   },
