@@ -81,14 +81,16 @@ const CreateAIGroupScreen = ({ navigation }) => {
         <Icon name="edit" size={20} color="#666" style={styles.icon} />
         <TextInput
           style={styles.input}
-          placeholder="Enter your prompt. It is recommended to make the prompt as detailed as possible!&#10;&#10;
-          Example: I want a budget plan for a family of 4 named Budi Family.&#10;
-          The family has a budget limit of 10.000.000.&#10;
-          I want 3.000.000 allocated for food.&#10;
-          2.000.000 for family shopping.&#10;
-          1.000.000 for savings.&#10;
-          2.000.000 for transports.&#10;
-          and 2.000.000 for miscellaneous.&#10;"
+          placeholder={
+            "Enter your prompt. It is recommended to make the prompt as detailed as possible!\n\n" +
+            "Example: I want a budget plan for a family of 4 named Budi Family.\n\n" +
+            "The family has a budget limit of 10.000.000.\n\n" +
+            "I want 3.000.000 allocated for food.\n" +
+            "2.000.000 for family shopping.\n" +
+            "1.000.000 for savings.\n" +
+            "2.000.000 for transports.\n" +
+            "and 2.000.000 for miscellaneous."
+          }
           value={userPrompt}
           onChangeText={setUserPrompt}
           multiline

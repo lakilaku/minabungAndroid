@@ -9,7 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 const BudgetScreen = () => {
   const [group, setGroup] = useState(null);
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["14%"], []);
+  const snapPoints = useMemo(() => ["10%", "55%"], []);
 
   useFocusEffect(
     React.useCallback(() => {

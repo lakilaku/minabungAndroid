@@ -104,7 +104,7 @@ const TabButton = ({ label, selected, onPress, icon }) => (
 );
 
 const styles = StyleSheet.create({
-  bottomSheetContent: { padding: 16 },
+  bottomSheetContent: { paddingHorizontal: 16, paddingBottom: "20%" },
   tabContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
