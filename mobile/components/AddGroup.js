@@ -15,7 +15,7 @@ const AddGroup = ({ navigation }) => {
           onPress={() => navigation.navigate("CreateGroup")}
         >
           <Text style={[styles.buttonText, styles.primaryText]}>
-            Create Group
+            Plan a Group
           </Text>
         </TouchableOpacity>
 
@@ -24,7 +24,7 @@ const AddGroup = ({ navigation }) => {
           onPress={() => navigation.navigate("CreateGroupAi")}
         >
           <Text style={[styles.buttonText, styles.secondaryText]}>
-            Need Help?
+            AI Group Planning
           </Text>
         </TouchableOpacity>
 

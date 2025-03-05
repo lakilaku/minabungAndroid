@@ -69,7 +69,7 @@ const ProfileScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   // console.log(user);
-  
+
   const [updates, setUpdates] = useState({
     name: "",
     username: "",
@@ -83,7 +83,7 @@ const ProfileScreen = () => {
       if (userStr) {
         const parsedUser = JSON.parse(userStr);
         // console.log(parsedUser, "<<<");
-        
+
         if (parsedUser._id) {
           setUser(parsedUser);
           setUpdates({
@@ -115,7 +115,6 @@ const ProfileScreen = () => {
   });
 
   // console.log(userData?.getGroupByUserId.length);
-  
 
   const [updateProfileMutation, { loading, error }] =
     useMutation(UPDATEPROFILE);
@@ -135,9 +134,9 @@ const ProfileScreen = () => {
       });
       if (data?.updateProfile) {
         setUser(data.updateProfile);
-  
+
         await saveSecure("userData", JSON.stringify(data.updateProfile));
-  
+
         setModalVisible(false);
       }
     } catch (err) {
@@ -151,25 +150,25 @@ const ProfileScreen = () => {
       alert("Permission to access gallery is required!");
       return;
     }
-  
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
-  
+
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       const fileType = lookup(uri) || "image/jpeg";
       const fileName = uri.split("/").pop();
-      
+
       // Mengonversi menjadi ReactNativeFile
       const file = new ReactNativeFile({
         uri,
         type: fileType,
         name: fileName,
       });
-  
+
       try {
         const { data } = await updateProfilePicture({
           variables: {
@@ -177,7 +176,7 @@ const ProfileScreen = () => {
           },
           context: { headers: { authorization: `Bearer ${token}` } },
         });
-  
+
         if (data?.updateProfilePicture) {
           setUser((prev) => ({
             ...prev,
@@ -195,11 +194,14 @@ const ProfileScreen = () => {
     setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
-      setUpdates({ ...updates, birthDate: selectedDate.toISOString().split("T")[0] }); // Format YYYY-MM-DD
+      setUpdates({
+        ...updates,
+        birthDate: selectedDate.toISOString().split("T")[0],
+      }); // Format YYYY-MM-DD
     }
   };
   // console.log(user);
-  
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -207,7 +209,9 @@ const ProfileScreen = () => {
         <TouchableOpacity onPress={() => setModalVisiblePicture(true)}>
           <Image
             source={{
-              uri: user?.profilePicture || `https://image.pollinations.ai/prompt/${user?.name} 1 berupa wajah?width=800&height=800&nologo=true`,
+              uri:
+                user?.profilePicture ||
+                `https://image.pollinations.ai/prompt/${user?.name} 1 berupa wajah?width=800&height=800&nologo=true`,
             }}
             style={styles.profileImage}
           />
@@ -220,10 +224,15 @@ const ProfileScreen = () => {
         <Icon name="edit" size={24} color="#fff" />
       </TouchableOpacity>
       {/* <Text style={styles.edit}>Edit Profile</Text> */}
-      <TouchableOpacity style={styles.logoutButton} onPress={async () => {
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={async () => {
           await deleteSecure("accessToken");
+          await deleteSecure("userData");
+          await deleteSecure("groupData");
           setIsSignedIn(false);
-        }}>
+        }}
+      >
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
 
@@ -234,16 +243,18 @@ const ProfileScreen = () => {
           {user?.username ? "@️" + user.username : "@username"}
         </Text>
         <Text style={styles.infoText}>
-        📧 Email: {user?.email || "email@example.com"}
+          📧 Email: {user?.email || "email@example.com"}
         </Text>
         {/* <Text style={styles.infoText}>Gender: {user?.gender || "N/A"}</Text> */}
         <Text style={styles.infoText}>
-        📆 Birth Date: {user?.birthDate || "N/A"}
+          📆 Birth Date: {user?.birthDate || "N/A"}
         </Text>
         <View style={styles.separator} />
         <View style={styles.textCenter}>
-            <Text style={styles.textSmall}>Group</Text>
-            <Text style={styles.textCounter}>{userData?.getGroupByUserId.length}</Text>
+          <Text style={styles.textSmall}>Group</Text>
+          <Text style={styles.textCounter}>
+            {userData?.getGroupByUserId.length}
+          </Text>
         </View>
         <View style={styles.separator} />
       </View>
@@ -313,7 +324,9 @@ const ProfileScreen = () => {
 
             {showDatePicker && (
               <DateTimePicker
-                value={updates.birthDate ? new Date(updates.birthDate) : new Date()}
+                value={
+                  updates.birthDate ? new Date(updates.birthDate) : new Date()
+                }
                 mode="date"
                 display="default"
                 onChange={handleDateChange}
@@ -347,10 +360,16 @@ const ProfileScreen = () => {
       </Modal>
 
       {/* Modal for Image Selection */}
-      <Modal visible={modalVisiblePicture} transparent={true} animationType="slide">
+      <Modal
+        visible={modalVisiblePicture}
+        transparent={true}
+        animationType="slide"
+      >
         <View style={uploadPictureStyles.modalOverlayPicture}>
           <View style={uploadPictureStyles.modalContentPicture}>
-            <Text style={uploadPictureStyles.modalTitlePicture}>Update Profile Picture</Text>
+            <Text style={uploadPictureStyles.modalTitlePicture}>
+              Update Profile Picture
+            </Text>
 
             {/* <TouchableOpacity 
               style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.confirmButtonPicture]} 
@@ -360,20 +379,28 @@ const ProfileScreen = () => {
 
             <View style={uploadPictureStyles.buttonContainerPicture}>
               <TouchableOpacity
-                style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.confirmButtonPicture]}
+                style={[
+                  uploadPictureStyles.modalButtonPicture,
+                  uploadPictureStyles.confirmButtonPicture,
+                ]}
                 onPress={handleChoosePhoto}
               >
-                <Text style={uploadPictureStyles.modalButtonTextPicture}>Upload Picture</Text>
+                <Text style={uploadPictureStyles.modalButtonTextPicture}>
+                  Upload Picture
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[uploadPictureStyles.modalButtonPicture, uploadPictureStyles.cancelButtonPicture]}
+                style={[
+                  uploadPictureStyles.modalButtonPicture,
+                  uploadPictureStyles.cancelButtonPicture,
+                ]}
                 onPress={() => setModalVisiblePicture(false)}
               >
-                <Text style={uploadPictureStyles.modalButtonTextPicture}>Cancel</Text>
+                <Text style={uploadPictureStyles.modalButtonTextPicture}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
-
             </View>
-
           </View>
         </View>
       </Modal>
@@ -486,7 +513,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 3, // Tambahkan shadow untuk tampilan lebih baik
   },
-  
+
   logoutText: {
     color: "#fff",
     fontWeight: "bold",
@@ -511,16 +538,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textSmall: {
-      fontSize: 14,
-      opacity: 0.5,
+    fontSize: 14,
+    opacity: 0.5,
   },
   textCounter: {
-      fontSize: 16,
-      fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   separator: {
     borderBottomWidth: 1,
-    borderColor: '#D3D3D3',
+    borderColor: "#D3D3D3",
     marginTop: 16,
   },
 });

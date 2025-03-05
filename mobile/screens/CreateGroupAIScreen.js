@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
 } from "react-native";
 import { gql, useMutation } from "@apollo/client";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { GET_GROUP_BY_USER_ID } from "./HomeScreen";
+import { GET_THIS_MONTH_INCOME_EXPENSES } from "../components/TransactionList";
+import { getSecure } from "../utils/SecureStore";
 
 const CREATE_AI_GROUP = gql`
   mutation CreateAIGroup($userPrompt: String!) {
@@ -31,11 +34,35 @@ const CREATE_AI_GROUP = gql`
 const CreateAIGroupScreen = ({ navigation }) => {
   const [userPrompt, setUserPrompt] = useState("");
   const [generatedGroup, setGeneratedGroup] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [createGroup, { loading, error }] = useMutation(CREATE_AI_GROUP, {
     onCompleted: (data) => {
       setGeneratedGroup(data.createAIGroup);
     },
+    refetchQueries: [
+      {
+        query: GET_GROUP_BY_USER_ID,
+        variables: { userId },
+      },
+    ],
   });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getSecure("userData");
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          if (parsedUser._id) {
+            setUserId(parsedUser._id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   const handleGenerateGroup = async () => {
     if (!userPrompt.trim()) return alert("Please enter a prompt!");

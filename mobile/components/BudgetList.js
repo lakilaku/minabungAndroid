@@ -56,7 +56,14 @@ const BudgetList = ({ budgets, expenses, onBudgetClick, selectedBudgetId }) => {
             </Text>
           </View>
         </Text>
-        <Text style={styles.budgetCardLabel}>{item.name}</Text>
+        <Text
+          style={[
+            styles.budgetCardLabel,
+            { fontSize: item.name.length > 17 ? 12 : 14 },
+          ]}
+        >
+          {item.name}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -92,12 +99,12 @@ const styles = StyleSheet.create({
   },
   budgetCard: {
     width: 150,
-    height: 100,
+    // height: 100,
     borderRadius: 16,
     marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    paddingHorizontal: 8,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 2,
@@ -107,20 +114,20 @@ const styles = StyleSheet.create({
   icon: {
     width: 30,
     height: 30,
-    position: "absolute",
-    top: 10,
-    right: 10,
+    marginTop: 10,
+    // // position: "absolute",
+    // top: 10,
+    // right: 10,
     zIndex: 1,
   },
   budgetCardAmount: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    marginBottom: 5,
-    paddingBottom: 5,
+    // position: "absolute",
+    // bottom: 10,
+    // right: 10,
+    // paddingBottom: 5,
   },
   availableRed: {
     color: "red",
@@ -137,9 +144,12 @@ const styles = StyleSheet.create({
   budgetCardLabel: {
     fontSize: 14,
     color: "#fff",
-    position: "absolute",
-    bottom: 5,
-    right: 10,
+    // position: "absolute",
+    // bottom: 5,
+    // right: 10,
+    width: "100%",
+    textAlign: "right",
+    marginBottom: 8,
   },
   budgetHeader: {
     flexDirection: "row",
