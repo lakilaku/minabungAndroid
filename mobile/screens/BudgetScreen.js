@@ -4,19 +4,22 @@ import BottomSheetComponent from "../components/bottomsheet";
 import BarChartComponent from "../components/barchart";
 import PieChartComponent from "../components/piechart";
 import { getSecure } from "../utils/SecureStore";
+import { useFocusEffect } from "@react-navigation/native";
 
 const BudgetScreen = () => {
   const [group, setGroup] = useState(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "70%"], []);
 
-  useEffect(() => {
-    const fetchGroup = async () => {
-      const storedGroup = await getSecure("selectedGroup");
-      if (storedGroup) setGroup(JSON.parse(storedGroup));
-    };
-    fetchGroup();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchGroup = async () => {
+        const storedGroup = await getSecure("selectedGroup");
+        if (storedGroup) setGroup(JSON.parse(storedGroup));
+      };
+      fetchGroup();
+    }, [])
+  );
 
   if (!group) return <ActivityIndicator size="large" color="#0000ff" />;
 

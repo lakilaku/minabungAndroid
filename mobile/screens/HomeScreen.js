@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -46,6 +46,7 @@ const GET_GROUP_BY_USER_ID = gql`
 const HomeScreen = () => {
   const [userId, setUserId] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBudgetId, setSelectedBudgetId] = useState(null);
   const navigation = useNavigation();
@@ -67,7 +68,7 @@ const HomeScreen = () => {
       if (storedGroup) setSelectedGroup(JSON.parse(storedGroup));
     };
     fetchStoredGroup();
-  }, []);
+  }, [data]);
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP_BY_USER_ID, {
     variables: { userId },
@@ -77,17 +78,21 @@ const HomeScreen = () => {
   useFocusEffect(
     React.useCallback(() => {
       refetch();
-    }, [refetch])
+      setSelectedGroup(null);
+      // console.log(selectedIndex, "Selected Index Focus");
+    }, [refetch, selectedIndex])
   );
 
   const groupList = data?.getGroupByUserId || [];
   useEffect(() => {
     if (groupList.length > 0 && !selectedGroup) {
-      const defaultGroup = groupList[0];
+      const defaultGroup = groupList[selectedIndex];
       setSelectedGroup(defaultGroup);
+      // console.log(selectedIndex, "Selected Index Inside");
+      // console.log(defaultGroup.name);
       saveSecure("selectedGroup", JSON.stringify(defaultGroup));
     }
-  }, [groupList, selectedGroup]);
+  }, [groupList, selectedGroup, data]);
 
   if (!userId || loading)
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -157,12 +162,12 @@ const HomeScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Select Group</Text>
-            {groupList.map((group) => (
+            {groupList.map((group, index) => (
               <TouchableOpacity
                 key={group._id}
                 onPress={() => {
-                  deleteSecure("selectedGroup");
                   setSelectedGroup(group);
+                  setSelectedIndex(index);
                   saveSecure("selectedGroup", JSON.stringify(group));
                   setModalVisible(false);
                 }}

@@ -13,7 +13,7 @@ import { FormatRupiah } from "../utils/NumberFormat";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useState } from "react";
 
-const GET_THIS_MONTH_INCOME_EXPENSES = gql`
+export const GET_THIS_MONTH_INCOME_EXPENSES = gql`
   query GetThisMonthIncomesandExpenses($groupId: ID!) {
     getThisMonthIncomesandExpenses(groupId: $groupId) {
       _id
@@ -107,15 +107,15 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
   const [amount, setAmount] = useState("");
 
   if (loading) return <Text>Loading...</Text>;
-  if (error) return <Text>Error: {error.message}</Text>;
+  // if (error) return <Text>Error: {error.message}</Text>;
 
   let allTransaction = data?.getThisMonthIncomesandExpenses || [];
 
   // Filter transactions by selected budget
   if (selectedBudgetId) {
-    allTransaction = allTransaction.filter(
-      (item) => item.budgetId === selectedBudgetId
-    );
+    allTransaction =
+      allTransaction?.filter((item) => item.budgetId === selectedBudgetId) ||
+      [];
   }
 
   const openModal = (transaction) => {
@@ -177,10 +177,18 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
     }
   };
 
+  const currentMonth = new Date().getMonth() + 1;
+  const monthName = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+  }).format(currentMonth);
+  const currentYear = new Date().getFullYear();
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.expenseContainer}>
-        <Text style={styles.expenseTitle}>Transactions</Text>
+        <Text style={styles.expenseTitle}>
+          {monthName} {currentYear} Transactions
+        </Text>
         {allTransaction.length === 0 ? (
           <Text style={styles.noDataText}>No transactions available</Text>
         ) : (

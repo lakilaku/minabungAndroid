@@ -17,6 +17,7 @@ import JoinGroupScreen from "../screens/JoinGroupScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
 import AddGroup from "../components/AddGroup";
 import TabNavigator from "./TabNavigator";
+import CreateAIGroupScreen from "../screens/CreateGroupAIScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -107,6 +108,14 @@ export default function RootStack() {
               component={CreateGroupScreen}
               options={{
                 title: "CreateGroup",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="CreateGroupAi"
+              component={CreateAIGroupScreen}
+              options={{
+                title: "CreateGroupAi",
                 headerShown: false,
               }}
             />

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { useMutation, gql } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 
@@ -16,7 +23,7 @@ const CreateGroupScreen = () => {
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
   const navigation = useNavigation();
-  
+
   const [createGroup, { loading, error }] = useMutation(CREATE_GROUP);
 
   const handleCreateGroup = async () => {
@@ -24,7 +31,9 @@ const CreateGroupScreen = () => {
       const { data } = await createGroup({
         variables: { name: groupName, description },
       });
-      Alert.alert("Success", "Group created successfully!", [{ text: "OK", onPress: () => navigation.goBack() }]);
+      Alert.alert("Success", "Group created successfully!", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
       setGroupName("");
       setDescription("");
     } catch (err) {
@@ -57,8 +66,14 @@ const CreateGroupScreen = () => {
 
       {error && <Text style={styles.errorText}>Error: {error.message}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleCreateGroup} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Creating..." : "Create Group"}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleCreateGroup}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Creating..." : "Create Group"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -67,7 +82,7 @@ const CreateGroupScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5C400",
+    backgroundColor: "#FFC067",
     justifyContent: "center",
     paddingHorizontal: 20,
   },
