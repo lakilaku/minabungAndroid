@@ -71,10 +71,14 @@ const UPDATE_EXPENSE = gql`
 `;
 
 const DELETE_EXPENSE = gql`
-  mutation DeleteExpense($deleteExpenseId: ID!) {
-    deleteExpense(id: $deleteExpenseId) {
+  mutation DeleteExpense($groupId: ID!, $expenseId: ID!) {
+    deleteExpense(groupId: $groupId, expenseId: $expenseId) {
+      _id
       name
+      note
       amount
+      date
+      budgetId
     }
   }
 `;
@@ -166,7 +170,7 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
         });
       } else {
         await deleteExpense({
-          variables: { deleteExpenseId: selectedTransaction._id },
+          variables: { expenseId: selectedTransaction._id, groupId },
         });
       }
 
