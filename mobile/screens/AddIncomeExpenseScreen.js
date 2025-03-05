@@ -158,6 +158,16 @@ const ExpenseIncomeScreen = () => {
   const [addIncome] = useMutation(CREATE_POST_INCOME, {
     onCompleted: () => Alert.alert("Success", "Income added successfully"),
     onError: (err) => Alert.alert("Error", err.message),
+    refetchQueries: [
+      {
+        query: GET_GROUP_BY_USER_ID,
+        variables: { userId },
+      },
+      {
+        query: GET_THIS_MONTH_INCOME_EXPENSES,
+        variables: { groupId: selectedGroup?._id },
+      },
+    ],
   });
 
   if (loading) {
