@@ -92,7 +92,6 @@ const HomeScreen = () => {
       // console.log(selectedIndex, "Selected Index Inside");
       // console.log(defaultGroup.name);
       saveSecure("selectedGroup", JSON.stringify(defaultGroup));
-      console.log("Masuk", defaultGroup.budgets);
     }
   }, [groupList, selectedGroup, data]);
 
