@@ -1,8 +1,9 @@
 import { ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { getSecure } from "../utils/SecureStore";
+import { createUploadLink } from "apollo-upload-client";
 
-const httpLink = createHttpLink({
+const uploadLink = createUploadLink({
   uri: "https://minabung.kyoutaroo.com/graphql",
 });
 
@@ -17,7 +18,7 @@ const authLink = setContext(async (_, { headers }) => {
 });
 
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: authLink.concat(uploadLink),
   cache: new InMemoryCache(),
 });
 
