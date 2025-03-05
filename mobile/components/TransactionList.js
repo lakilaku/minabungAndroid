@@ -289,6 +289,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 16,
     marginBottom: 10,
+    textAlign: "center",
     color: "#000",
   },
   expenseItem: {
@@ -362,6 +363,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  noDataText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: "50%",
   },
 });
 

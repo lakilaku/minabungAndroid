@@ -129,7 +129,7 @@ const HomeScreen = () => {
 
   filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  return (
+  return data.getGroupByUserId.length > 0 ? (
     <View style={styles.container}>
       <View style={styles.incomeContainer}>
         <Text style={styles.incomeTitle}>Current Balance</Text>
@@ -201,6 +201,8 @@ const HomeScreen = () => {
         </View>
       </Modal>
     </View>
+  ) : (
+    <AddGroup navigation={navigation} />
   );
 };
 

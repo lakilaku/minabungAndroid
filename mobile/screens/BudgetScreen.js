@@ -16,6 +16,7 @@ const BudgetScreen = () => {
       const fetchGroup = async () => {
         const storedGroup = await getSecure("selectedGroup");
         if (storedGroup) setGroup(JSON.parse(storedGroup));
+        if (!storedGroup) setGroup(null);
       };
       fetchGroup();
     }, [])
@@ -26,7 +27,7 @@ const BudgetScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
-        <Text style={styles.title}>{group.name}</Text>
+        <Text style={styles.title}>{group?.name}</Text>
         <Text style={styles.subTitle}>This month</Text>
       </View>
       <PieChartComponent group={group} />

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { deleteSecure, getSecure, saveSecure } from "../utils/SecureStore";
 import { AuthContext } from "../contexts/AuthContext";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import { lookup } from "react-native-mime-types";
@@ -68,6 +68,7 @@ const ProfileScreen = () => {
   const [updateProfilePicture] = useMutation(UPDATE_PROFILE_PICTURE);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const client = useApolloClient;
   // console.log(user);
 
   const [updates, setUpdates] = useState({
@@ -230,6 +231,7 @@ const ProfileScreen = () => {
           await deleteSecure("accessToken");
           await deleteSecure("userData");
           await deleteSecure("groupData");
+          await deleteSecure("selectedGroup");
           setIsSignedIn(false);
         }}
       >
