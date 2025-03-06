@@ -9,9 +9,9 @@ import {
   Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { FormatRupiah } from "../utils/NumberFormat";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useState } from "react";
+import { FormatRupiah } from "../utils/NumberFormat";
 
 export const GET_THIS_MONTH_INCOME_EXPENSES = gql`
   query GetThisMonthIncomesandExpenses($groupId: ID!) {
@@ -198,6 +198,16 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
   ];
   const currentYear = new Date().getFullYear();
 
+  const parseNumber = (formattedValue) => {
+    return formattedValue.replace(/\D/g, "");
+  };
+  const formatRupiah = (value) => {
+    if (!value) return "Rp.";
+    return (
+      "Rp." + parseFloat(value.replace(/\D/g, "") || 0).toLocaleString("id-ID")
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.expenseContainer}>
@@ -239,8 +249,8 @@ const TransactionList = ({ groupId, selectedBudgetId, budgets }) => {
             />
             <TextInput
               style={styles.input}
-              value={amount}
-              onChangeText={setAmount}
+              value={formatRupiah(amount)}
+              onChangeText={(text) => setAmount(parseNumber(text))}
               keyboardType="numeric"
             />
 

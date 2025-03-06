@@ -22,8 +22,6 @@ const BudgetScreen = () => {
     }, [])
   );
 
-  if (!group) return <ActivityIndicator size="large" color="#0000ff" />;
-
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>

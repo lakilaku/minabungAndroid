@@ -163,6 +163,16 @@ const BudgetList = ({
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
+  const parseNumber = (formattedValue) => {
+    return formattedValue.replace(/\D/g, "");
+  };
+  const formatRupiah = (value) => {
+    if (!value) return "Rp.";
+    return (
+      "Rp." + parseFloat(value.replace(/\D/g, "") || 0).toLocaleString("id-ID")
+    );
+  };
+
   const renderBudgetItem = ({ item }) => {
     const totalExpense = expenses
       .filter((expense) => expense.budgetId === item._id)
@@ -245,8 +255,8 @@ const BudgetList = ({
           <TextInput
             style={styles.input}
             placeholder="Limit Budget"
-            value={limit}
-            onChangeText={setLimit}
+            value={formatRupiah(limit)}
+            onChangeText={(text) => setLimit(parseNumber(text))}
             keyboardType="numeric"
           />
           <Text style={styles.label}>Choose Color:</Text>
